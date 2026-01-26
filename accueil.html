@@ -418,6 +418,8 @@
             }
         };
     </script>
+    <!-- SDK Paystack -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         /* Styles existants conservés */
         * {
@@ -1183,12 +1185,122 @@
             border-radius: 10px;
         }
 
-        .plans-title {
-            font-size: 1rem;
+        /* Styles pour la modale Paystack */
+        .payment-info {
+            background: rgba(138, 43, 226, 0.05);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
             font-weight: 600;
-            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+
+        .email-input {
+            margin-bottom: 20px;
+        }
+
+        .email-input label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
             color: var(--text);
-            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .email-input label i {
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .email-input input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid rgba(138, 43, 226, 0.1);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .email-input input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .email-help {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        .payment-security {
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .security-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .security-item i {
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .payment-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 12px 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .payment-warning i {
+            color: var(--warning);
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .payment-warning p {
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.4;
+            margin: 0;
         }
 
         .plan-options {
@@ -1484,16 +1596,6 @@
         .confirmation-actions {
             display: flex;
             gap: 10px;
-        }
-
-        .confirm-btn {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: var(--radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
         }
 
         .confirm-btn.danger {
@@ -2658,6 +2760,72 @@
         </div>
     </div>
 
+    <!-- Paystack Payment Modal -->
+    <div class="modal-overlay" id="paystackModal">
+        <div class="subscription-modal">
+            <div class="modal-header" style="background: linear-gradient(135deg, #00D4FF, #0066FF);">
+                <div class="modal-close" onclick="closePaystackModal()">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="modal-game-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <h2 class="modal-title">Paiement sécurisé</h2>
+                <p class="modal-subtitle">Finalisez votre achat avec Paystack</p>
+            </div>
+            <div class="plans-container">
+                <div class="payment-info">
+                    <div class="info-row">
+                        <span class="info-label">Jeu :</span>
+                        <span class="info-value" id="paystackGameName"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Forfait :</span>
+                        <span class="info-value" id="paystackPlanName"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Montant :</span>
+                        <span class="info-value" id="paystackAmount"></span>
+                    </div>
+                </div>
+                
+                <div class="email-input">
+                    <label for="paymentEmail">
+                        <i class="fas fa-envelope"></i> Adresse email
+                    </label>
+                    <input type="email" id="paymentEmail" placeholder="votre@email.com" value="">
+                    <p class="email-help">Vous recevrez la confirmation à cette adresse</p>
+                </div>
+                
+                <div class="payment-security">
+                    <div class="security-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Paiement 100% sécurisé</span>
+                    </div>
+                    <div class="security-item">
+                        <i class="fas fa-lock"></i>
+                        <span>Données cryptées SSL</span>
+                    </div>
+                    <div class="security-item">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Remboursement sous 24h</span>
+                    </div>
+                </div>
+                
+                <div class="payment-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Ne quittez pas la page de paiement Paystack avant confirmation.</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closePaystackModal()">Annuler</button>
+                <button class="confirm-btn" onclick="processPayment()" id="paystackBtn">
+                    <i class="fas fa-credit-card"></i> Payer maintenant
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <div class="nav-item active">
@@ -2686,6 +2854,10 @@
         // Variables globales
         let currentGameId = null;
         let selectedPlan = null;
+        let currentPaymentData = null;
+
+        // Configuration Paystack
+        const GAMEHUB_BACKEND_URL = "https://backend-gamehub-eynr.onrender.com";
 
         // Animation au chargement de la page
         document.addEventListener('DOMContentLoaded', async function() {
@@ -2740,6 +2912,7 @@
             // Attendre que Firebase soit initialisé, puis vérifier les licences
             setTimeout(async () => {
                 await checkAndUpdateGameButtons();
+                await verifierPaiementRecent();
             }, 1000);
         });
 
@@ -3039,118 +3212,231 @@
 
             const plan = planDetails[selectedPlan];
             
-            // Créer une modale de confirmation personnalisée
-            const confirmationModal = document.createElement('div');
-            confirmationModal.className = 'modal-overlay active';
+            // Fermer la modale d'abonnement
+            closeSubscriptionModal();
             
-            let message = '';
-            if (game.type === 'game') {
-                message = `
-                    Voulez-vous acheter <strong>${game.name}</strong> - ${plan.name} pour <strong>${plan.price}Fr</strong> ?<br><br>
-                    Durée: ${plan.duration}<br>
-                    Après achat, vous serez débité de <strong>${plan.price}Fr</strong> et aurez accès à toutes les variantes du jeu.
-                `;
-            } else {
-                message = `
-                    Voulez-vous acheter <strong>${game.name}</strong> - ${plan.name} pour <strong>${plan.price}Fr</strong> ?<br><br>
-                    Durée: ${plan.duration}<br>
-                    Après achat, vous serez débité de <strong>${plan.price}Fr</strong> et aurez accès à deux variantes: Predictor et Montante.
-                `;
+            // Ouvrir la modale Paystack
+            showPaystackModal(game.name, plan.name, plan.price, currentGameId, selectedPlan);
+        }
+
+        // Fonction pour afficher la modale Paystack
+        function showPaystackModal(gameName, planName, price, gameId, planType) {
+            currentPaymentData = {
+                gameId,
+                gameName,
+                plan: planType,
+                planName,
+                price
+            };
+            
+            document.getElementById('paystackGameName').textContent = gameName;
+            document.getElementById('paystackPlanName').textContent = planName;
+            document.getElementById('paystackAmount').textContent = price + 'Fr';
+            
+            // Récupérer l'email de l'utilisateur Firebase s'il est connecté
+            const user = window.auth?.currentUser;
+            if (user && user.email) {
+                document.getElementById('paymentEmail').value = user.email;
             }
             
-            confirmationModal.innerHTML = `
-                <div class="confirmation-modal">
-                    <div class="confirmation-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <h3 class="confirmation-title">Confirmer l'achat</h3>
-                    <p class="confirmation-message">${message}</p>
-                    <div class="confirmation-actions">
-                        <button class="confirm-btn cancel" id="cancelPurchase">Annuler</button>
-                        <button class="confirm-btn" id="confirmPurchase" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">Confirmer</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(confirmationModal);
+            // Afficher la modale
+            document.getElementById('paystackModal').classList.add('active');
             document.body.style.overflow = 'hidden';
+        }
+
+        // Fonction pour fermer la modale Paystack
+        function closePaystackModal() {
+            document.getElementById('paystackModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            currentPaymentData = null;
+        }
+
+        // Fonction pour traiter le paiement
+        async function processPayment() {
+            const email = document.getElementById('paymentEmail').value.trim();
             
-            // Gérer les actions de la modale de confirmation
-            document.getElementById('cancelPurchase').addEventListener('click', function() {
-                document.body.removeChild(confirmationModal);
-                document.body.style.overflow = 'auto';
-            });
+            if (!email) {
+                showNotification('Email requis', 'Veuillez entrer votre adresse email.', 'warning', 3000);
+                document.getElementById('paymentEmail').focus();
+                return;
+            }
             
-            document.getElementById('confirmPurchase').addEventListener('click', async function() {
-                // Enregistrer l'achat dans Firestore
-                const purchaseSuccess = await window.registerPurchase(currentGameId, game.name, selectedPlan, plan.price);
+            // Validation email simple
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Email invalide', 'Veuillez entrer une adresse email valide.', 'warning', 3000);
+                document.getElementById('paymentEmail').focus();
+                return;
+            }
+            
+            // Désactiver le bouton
+            const paystackBtn = document.getElementById('paystackBtn');
+            paystackBtn.disabled = true;
+            paystackBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+            
+            try {
+                // Initier le paiement Paystack
+                const paymentSuccess = await initierPaiementGameHub(
+                    email,
+                    currentPaymentData.price,
+                    currentPaymentData.gameId,
+                    currentPaymentData.gameName,
+                    currentPaymentData.plan
+                );
                 
-                if (purchaseSuccess) {
-                    // Afficher notification de succès
-                    let successMessage = '';
-                    if (game.type === 'game') {
-                        successMessage = `${game.name} - ${plan.name} a été ajouté à votre collection.`;
-                    } else {
-                        successMessage = `${game.name} - ${plan.name} a été ajouté à votre collection. Vous avez maintenant accès à Predictor et Montante.`;
-                    }
+                if (!paymentSuccess) {
+                    throw new Error('Échec de l\'initialisation du paiement');
+                }
+                
+            } catch (error) {
+                console.error('Erreur traitement paiement:', error);
+                showNotification(
+                    'Erreur de paiement',
+                    'Une erreur est survenue. Veuillez réessayer.',
+                    'error',
+                    4000
+                );
+                
+                // Réactiver le bouton
+                paystackBtn.disabled = false;
+                paystackBtn.innerHTML = '<i class="fas fa-credit-card"></i> Payer maintenant';
+            }
+        }
+
+        // Fonction pour initier un paiement Paystack
+        async function initierPaiementGameHub(email, montant, gameId, gameName, plan) {
+            try {
+                const response = await fetch(`${GAMEHUB_BACKEND_URL}/create-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        amount: montant,
+                        sourcePage: 'accueil',
+                        gameId: gameId,
+                        gameName: gameName,
+                        plan: plan
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (data.status && data.data.authorization_url) {
+                    // Stocker les données d'achat en attente
+                    localStorage.setItem(`gamehub_pending_${data.data.reference}`, JSON.stringify({
+                        gameId,
+                        gameName,
+                        plan,
+                        price: montant
+                    }));
                     
-                    showNotification(
-                        'Achat confirmé !',
-                        successMessage,
-                        'success',
-                        5000
-                    );
+                    // Rediriger vers Paystack
+                    window.location.href = data.data.authorization_url;
                     
-                    // Mettre à jour l'affichage du jeu
-                    const gameCard = document.querySelector(`[data-game-id="${currentGameId}"]`);
-                    if (gameCard) {
-                        const expirationDate = new Date();
-                        switch(selectedPlan) {
-                            case 'trial':
-                                expirationDate.setHours(expirationDate.getHours() + 1);
-                                break;
-                            case 'daily':
-                                expirationDate.setDate(expirationDate.getDate() + 1);
-                                break;
-                            case 'weekly':
-                                expirationDate.setDate(expirationDate.getDate() + 7);
-                                break;
-                            case 'monthly':
-                                expirationDate.setMonth(expirationDate.getMonth() + 1);
-                                break;
-                        }
-                        markGameAsPurchased(gameCard, expirationDate);
-                    }
-                    
-                    // Fermer les modales
-                    document.body.removeChild(confirmationModal);
-                    closeSubscriptionModal();
-                    
+                    return true;
                 } else {
-                    showNotification(
-                        'Erreur',
-                        'Impossible d\'enregistrer l\'achat. Veuillez réessayer.',
-                        'error',
-                        4000
-                    );
-                    document.body.removeChild(confirmationModal);
-                    closeSubscriptionModal();
+                    throw new Error(data.message || 'Erreur lors de la création du paiement');
                 }
-            });
+            } catch (error) {
+                console.error('Erreur paiement:', error);
+                showNotification(
+                    'Erreur de paiement',
+                    'Impossible d\'initialiser le paiement. Veuillez réessayer.',
+                    'error',
+                    4000
+                );
+                return false;
+            }
+        }
+
+        // Fonction pour vérifier un paiement récent
+        async function verifierPaiementRecent() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reference = urlParams.get('reference');
+            const trxref = urlParams.get('trxref');
             
-            // Fermer la modale en cliquant à l'extérieur
-            confirmationModal.addEventListener('click', function(e) {
-                if (e.target === confirmationModal) {
-                    document.body.removeChild(confirmationModal);
-                    document.body.style.overflow = 'auto';
+            const paymentRef = reference || trxref;
+            
+            if (paymentRef && paymentRef !== 'true') {
+                console.log(`🔍 Vérification du paiement avec référence: ${paymentRef}`);
+                
+                try {
+                    const response = await fetch(`${GAMEHUB_BACKEND_URL}/verify-payment/${paymentRef}`);
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        // Récupérer les données d'achat en attente
+                        const storedData = localStorage.getItem(`gamehub_pending_${paymentRef}`);
+                        
+                        if (storedData) {
+                            const purchaseData = JSON.parse(storedData);
+                            
+                            // Enregistrer l'achat dans Firebase
+                            const purchaseSuccess = await window.registerPurchase(
+                                purchaseData.gameId,
+                                purchaseData.gameName,
+                                purchaseData.plan,
+                                purchaseData.price
+                            );
+                            
+                            if (purchaseSuccess) {
+                                showNotification(
+                                    '🎉 Paiement réussi !',
+                                    `Votre achat de ${purchaseData.gameName} (${purchaseData.plan}) a été confirmé.`,
+                                    'success',
+                                    6000
+                                );
+                                
+                                // Marquer le jeu comme acheté
+                                const gameCard = document.querySelector(`[data-game-id="${purchaseData.gameId}"]`);
+                                if (gameCard) {
+                                    const expirationDate = new Date();
+                                    switch(purchaseData.plan) {
+                                        case 'trial':
+                                            expirationDate.setHours(expirationDate.getHours() + 1);
+                                            break;
+                                        case 'daily':
+                                            expirationDate.setDate(expirationDate.getDate() + 1);
+                                            break;
+                                        case 'weekly':
+                                            expirationDate.setDate(expirationDate.getDate() + 7);
+                                            break;
+                                        case 'monthly':
+                                            expirationDate.setMonth(expirationDate.getMonth() + 1);
+                                            break;
+                                    }
+                                    markGameAsPurchased(gameCard, expirationDate);
+                                }
+                                
+                                // Nettoyer le localStorage
+                                localStorage.removeItem(`gamehub_pending_${paymentRef}`);
+                            }
+                        }
+                        
+                        // Nettoyer l'URL
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        // Recharger les boutons d'achat
+                        await checkAndUpdateGameButtons();
+                    }
+                } catch (error) {
+                    console.error('Erreur vérification paiement:', error);
                 }
-            });
+            }
         }
 
         // Fermer la modale en cliquant à l'extérieur
         document.getElementById('subscriptionModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeSubscriptionModal();
+            }
+        });
+
+        document.getElementById('paystackModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePaystackModal();
             }
         });
 
@@ -3168,16 +3454,10 @@
                     showGameDetails(gameId);
                 } else {
                     // Si pas encore acheté, ouvrir directement la modale d'achat
-                    // (Même si on clique sur le bouton acheter, cela fonctionne aussi)
                     showSubscriptionModal(gameId);
                 }
             });
         });
-
-        // Fonction pour mettre à jour les stats rapides (appelée depuis Firebase)
-        async function updateQuickStats(userId) {
-            // Cette fonction est appelée depuis le module Firebase
-        }
     </script>
 </body>
 </html>
