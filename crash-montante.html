@@ -178,7 +178,7 @@
                     console.log("Aucune licence valide trouvée");
                     showLicenseMessage("Licence non valide", "Votre licence n'est pas active ou a expiré", true);
                     isLicenseValid = false;
-                }
+            }
                 
             } catch (error) {
                 console.error('Erreur lors de la vérification de la licence:', error);
@@ -476,17 +476,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* SUPPRIMER L'EFFET DE FLOTTEMENT DU CERCLE */
         .circle-wrapper {
             position: relative;
             display: inline-block;
-            animation: floatAnimation 4s ease-in-out infinite;
             margin: 30px 0;
         }
         
-        @keyframes floatAnimation {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
+        /* SUPPRIMER L'ANIMATION DE FLOTTEMENT */
         
         .circle-outer {
             border: 6px solid rgba(255, 204, 0, 0.8);
@@ -583,7 +580,7 @@
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 204, 0, 0.3);
             box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
-            animation: hacksGlow 3s infinite alternate, float 4s ease-in-out infinite;
+            animation: hacksGlow 3s infinite alternate;
             font-weight: bold;
             letter-spacing: 1px;
             position: relative;
@@ -605,21 +602,13 @@
         @keyframes hacksGlow {
             0% { 
                 box-shadow: 0 0 20px rgba(255, 107, 0, 0.6);
-                transform: scale(1);
             }
             50% { 
                 box-shadow: 0 0 30px rgba(255, 170, 0, 0.8), 0 0 40px rgba(255, 204, 0, 0.6);
-                transform: scale(1.05);
             }
             100% { 
                 box-shadow: 0 0 20px rgba(255, 107, 0, 0.6);
-                transform: scale(1);
             }
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
         }
         
         @keyframes shine {
@@ -640,18 +629,6 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-fill-color: transparent;
-            animation: titleGlow 2s infinite alternate;
-        }
-        
-        @keyframes titleGlow {
-            0% { 
-                text-shadow: 0 2px 10px rgba(255, 107, 0, 0.7);
-                transform: scale(1);
-            }
-            100% { 
-                text-shadow: 0 2px 20px rgba(255, 170, 0, 0.9), 0 2px 30px rgba(255, 204, 0, 0.6);
-                transform: scale(1.02);
-            }
         }
         
         @keyframes pulse {
