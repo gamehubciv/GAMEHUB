@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Predicteur Pro - Version Premium</title>
+    <title>🤖 LuckyJet Predictor - Version Premium</title>
     
     <!-- Import Firebase SDK -->
     <script type="module">
@@ -52,7 +52,7 @@
                 
                 console.log("Utilisateur connecté:", user.uid);
                 
-                // Vérifier la licence pour Predicteur Pro
+                // Vérifier la licence pour LuckyJet
                 await checkUserLicense(user.uid);
                 
                 // Démarrer la vérification périodique de la licence
@@ -73,10 +73,10 @@
             try {
                 const userPurchasesRef = collection(db, 'users', userId, 'purchases');
                 
-                // Recherche des licences pour 'predicteur-pro'
+                // Recherche des licences pour 'luckyjet'
                 const q = query(
                     userPurchasesRef,
-                    where('gameId', '==', 'predicteur-pro')
+                    where('gameId', '==', 'luckyjet')
                 );
                 
                 console.log("Exécution de la requête Firestore...");
@@ -84,8 +84,8 @@
                 console.log("Résultats trouvés:", querySnapshot.size);
                 
                 if (querySnapshot.empty) {
-                    console.log("Aucune licence trouvée pour 'predicteur-pro'");
-                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté Predicteur Pro", true);
+                    console.log("Aucune licence trouvée pour 'luckyjet'");
+                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté LuckyJet Predictor", true);
                     isLicenseValid = false;
                     return;
                 }
@@ -362,22 +362,22 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-    /* Thème Bleu Professionnel */
+    /* Thème LuckyJet */
     :root {
-        --primary-color: #3B82F6;
-        --primary-dark: #1E40AF;
-        --secondary-color: #0EA5E9;
-        --success-color: #10B981;
-        --warning-color: #F59E0B;
-        --danger-color: #EF4444;
-        --bg-color: #0F172A;
-        --card-bg: #1E293B;
-        --text-color: #F8FAFC;
+        --primary-color: #8a00e1;
+        --primary-dark: #6b00b3;
+        --secondary-color: #ff69b4;
+        --success-color: #00FF00;
+        --warning-color: #ffcc00;
+        --danger-color: #ff5555;
+        --bg-color: #141414;
+        --card-bg: #1a1a2e;
+        --text-color: #ffffff;
     }
 
     body {
         background-color: var(--bg-color);
-        background-image: radial-gradient(circle at 50% 50%, #1E293B 0%, #0F172A 100%);
+        background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #121212 100%);
         color: var(--text-color);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         min-height: 100vh;
@@ -420,13 +420,23 @@
     }
     
     @keyframes glow {
-        0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
-        100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+        0% { box-shadow: 0 0 5px rgba(138, 0, 225, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(138, 0, 225, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(138, 0, 225, 0.5); }
     }
     
     .glowing {
         animation: glow 2s infinite;
+    }
+    
+    @keyframes jetGlow {
+        0% { box-shadow: 0 0 10px rgba(138, 0, 225, 0.5), 0 0 20px rgba(255, 105, 180, 0.3); }
+        50% { box-shadow: 0 0 20px rgba(138, 0, 225, 0.8), 0 0 40px rgba(255, 105, 180, 0.6); }
+        100% { box-shadow: 0 0 10px rgba(138, 0, 225, 0.5), 0 0 20px rgba(255, 105, 180, 0.3); }
+    }
+    
+    .jet-glowing {
+        animation: jetGlow 2s infinite;
     }
     
     /* Composants spécifiques */
@@ -439,26 +449,27 @@
         font-size: 0.875rem;
         margin: 0.25rem;
         animation: fadeIn 0.3s ease-out;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
     
     .auto-fetch-container {
-        background: linear-gradient(145deg, rgba(59, 130, 246, 0.1), rgba(30, 64, 175, 0.05));
+        background: linear-gradient(145deg, rgba(138, 0, 225, 0.1), rgba(107, 0, 179, 0.05));
         border-radius: 12px;
         padding: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(138, 0, 225, 0.2);
     }
     
     .history-item {
         transition: all 0.3s ease;
         background: var(--card-bg);
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(138, 0, 225, 0.2);
     }
     
     .history-item:hover {
         transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 4px 12px rgba(138, 0, 225, 0.2);
+        border-color: rgba(138, 0, 225, 0.4);
     }
     
     .stats-card {
@@ -466,7 +477,7 @@
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         padding: 1rem;
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(138, 0, 225, 0.2);
     }
     
     .robot-header {
@@ -475,21 +486,22 @@
         border-radius: 12px;
         padding: 1rem;
         margin-bottom: 1rem;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        border: 1px solid rgba(138, 0, 225, 0.3);
+        box-shadow: 0 4px 15px rgba(138, 0, 225, 0.3);
     }
     
     .feature-card {
-        background: rgba(59, 130, 246, 0.1);
+        background: rgba(138, 0, 225, 0.1);
         border-radius: 12px;
         padding: 1rem;
         margin-bottom: 0.75rem;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        border: 1px solid rgba(138, 0, 225, 0.3);
     }
     
     .duplicate-warning {
-        background-color: rgba(245, 158, 11, 0.2);
-        color: #F59E0B;
-        border: 1px solid rgba(245, 158, 11, 0.3);
+        background-color: rgba(255, 204, 0, 0.2);
+        color: #ffcc00;
+        border: 1px solid rgba(255, 204, 0, 0.3);
         padding: 8px;
         border-radius: 6px;
         font-size: 0.85rem;
@@ -505,12 +517,12 @@
         overflow: hidden;
         transition: transform 0.3s ease;
         padding: 1rem;
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(138, 0, 225, 0.2);
     }
     
     .dashboard-card:hover {
         transform: translateY(-3px);
-        border-color: rgba(59, 130, 246, 0.4);
+        border-color: rgba(138, 0, 225, 0.4);
     }
     
     .gradient-btn {
@@ -522,11 +534,12 @@
         font-weight: 600;
         transition: all 0.3s ease;
         font-size: 0.9rem;
+        box-shadow: 0 4px 6px rgba(138, 0, 225, 0.3);
     }
     
     .gradient-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+        box-shadow: 0 6px 12px rgba(138, 0, 225, 0.4);
     }
     
     .status-badge {
@@ -539,26 +552,26 @@
     }
     
     .status-pending {
-        background: rgba(245, 158, 11, 0.2);
-        color: #F59E0B;
+        background: rgba(255, 204, 0, 0.2);
+        color: #ffcc00;
     }
     
     .status-success {
-        background: rgba(16, 185, 129, 0.2);
-        color: #10B981;
+        background: rgba(0, 255, 0, 0.2);
+        color: #00FF00;
     }
     
     .status-failed {
-        background: rgba(239, 68, 68, 0.2);
-        color: #EF4444;
+        background: rgba(255, 85, 85, 0.2);
+        color: #ff5555;
     }
     
     .validation-container {
         margin-top: 1.2rem;
         padding: 1rem;
-        background: rgba(59, 130, 246, 0.1);
+        background: rgba(138, 0, 225, 0.1);
         border-radius: 10px;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        border: 1px solid rgba(138, 0, 225, 0.3);
     }
     
     .validation-status {
@@ -571,21 +584,21 @@
     }
     
     .validation-pending {
-        background-color: rgba(245, 158, 11, 0.2);
-        color: #F59E0B;
-        border: 1px solid rgba(245, 158, 11, 0.3);
+        background-color: rgba(255, 204, 0, 0.2);
+        color: #ffcc00;
+        border: 1px solid rgba(255, 204, 0, 0.3);
     }
     
     .validation-success {
-        background-color: rgba(16, 185, 129, 0.2);
-        color: #10B981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        background-color: rgba(0, 255, 0, 0.2);
+        color: #00FF00;
+        border: 1px solid rgba(0, 255, 0, 0.3);
     }
     
     .validation-failed {
-        background-color: rgba(239, 68, 68, 0.2);
-        color: #EF4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        background-color: rgba(255, 85, 85, 0.2);
+        color: #ff5555;
+        border: 1px solid rgba(255, 85, 85, 0.3);
     }
     
     .round-badge {
@@ -597,14 +610,14 @@
         font-weight: bold;
         font-size: 1.1rem;
         margin: 0.3rem;
-        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        box-shadow: 0 4px 6px rgba(138, 0, 225, 0.2);
         transition: all 0.3s ease;
     }
     
     .confidence-level {
         height: 10px;
         border-radius: 5px;
-        background: linear-gradient(to right, #EF4444, #F59E0B, #10B981);
+        background: linear-gradient(to right, #ff5555, #ffcc00, #00FF00);
     }
     
     .confidence-fill {
@@ -710,6 +723,15 @@
             padding: 0.5rem;
         }
     }
+    
+    /* Style pour le titre LuckyJet */
+    .luckyjet-title {
+        background: linear-gradient(135deg, #8a00e1, #ff69b4, #00ffff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 10px rgba(138, 0, 225, 0.3);
+    }
     </style>
 </head>
 <body class="text-white">
@@ -722,13 +744,13 @@
 
 <!-- Interface principale -->
 <div class="container mx-auto px-2 py-4" id="mainApp">
-    <div class="robot-header text-center glowing">
+    <div class="robot-header text-center jet-glowing">
         <h1 class="text-3xl font-bold flex items-center justify-center flex-wrap">
-            <i class="fas fa-robot mr-2 floating"></i>
-            🤖 Predicteur Pro Premium
-            <span class="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">V3.0</span>
+            <i class="fas fa-rocket mr-2 floating"></i>
+            <span class="luckyjet-title">LuckyJet Predictor Premium</span>
+            <span class="ml-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full">V3.0</span>
         </h1>
-        <p class="mt-1 text-blue-100 text-sm">Intelligence Artificielle avec vérification de licence</p>
+        <p class="mt-1 text-purple-200 text-sm">Intelligence Artificielle avec vérification de licence</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -775,11 +797,11 @@
         <div>
             <div class="stats-card mb-4">
                 <h3 class="text-lg font-bold text-white mb-3">
-                    <i class="fas fa-chart-pie text-blue-400 mr-2"></i>
+                    <i class="fas fa-chart-pie text-purple-400 mr-2"></i>
                     Statistiques Globales
                 </h3>
                 <div id="statsContainer" class="text-center">
-                    <p id="totalPredictions" class="text-2xl font-bold text-blue-400">0</p>
+                    <p id="totalPredictions" class="text-2xl font-bold text-purple-400">0</p>
                     <p id="predictionAccuracy" class="text-xl font-bold text-green-400 mt-1">0%</p>
                     <div class="grid grid-cols-3 gap-3 mt-3">
                         <div class="bg-green-900 p-2 rounded-lg">
@@ -807,7 +829,7 @@
                         <i class="fas fa-brain text-indigo-400 mr-2"></i>
                         Analyse Intelligence
                     </h3>
-                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition">
+                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition">
                         Actualiser
                     </button>
                 </div>
@@ -821,10 +843,10 @@
             <div class="dashboard-card">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-lg font-bold text-white">
-                        <i class="fas fa-history text-blue-400 mr-2"></i>
+                        <i class="fas fa-history text-purple-400 mr-2"></i>
                         Historique des Prédictions
                     </h3>
-                    <button id="toggleHistory" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
+                    <button id="toggleHistory" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
                         Masquer
                     </button>
                 </div>
@@ -836,7 +858,7 @@
     <!-- Section Fonctionnalités -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
         <div class="feature-card">
-            <div class="text-blue-400 text-2xl mb-2">
+            <div class="text-purple-400 text-2xl mb-2">
                 <i class="fas fa-shield-alt"></i>
             </div>
             <h4 class="font-bold text-base text-white mb-1">Licence Sécurisée</h4>
@@ -848,11 +870,11 @@
                 <i class="fas fa-robot"></i>
             </div>
             <h4 class="font-bold text-base text-white mb-1">IA Avancée</h4>
-            <p class="text-gray-300 text-sm">Algorithmes intelligents pour prédire les côtes avec une précision optimale.</p>
+            <p class="text-gray-300 text-sm">Algorithmes intelligents pour prédire les multiplicateurs avec une précision optimale.</p>
         </div>
         
         <div class="feature-card">
-            <div class="text-purple-400 text-2xl mb-2">
+            <div class="text-pink-400 text-2xl mb-2">
                 <i class="fas fa-cogs"></i>
             </div>
             <h4 class="font-bold text-base text-white mb-1">Paramètres Avancés</h4>
@@ -865,7 +887,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="font-bold text-white">
-                    <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                    <i class="fas fa-info-circle text-purple-400 mr-2"></i>
                     Statut du Système
                 </h3>
                 <p class="text-sm text-gray-400" id="statusIndicator">
@@ -873,7 +895,7 @@
                 </p>
             </div>
             <div class="text-right">
-                <p class="text-sm text-gray-400">Version: <span class="font-bold text-blue-400">Premium 3.0</span></p>
+                <p class="text-sm text-gray-400">Version: <span class="font-bold text-purple-400">Premium 3.0</span></p>
                 <p class="text-xs text-gray-500">Licence requise</p>
             </div>
         </div>
@@ -884,7 +906,8 @@
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <h3 class="text-lg font-bold mb-3">Predicteur Pro</h3>
+                <h3 class="text-lg font-bold mb-3">LuckyJet Predictor</h3>
+                <p class="text-gray-300 text-sm">Système de prédiction intelligent pour le jeu LuckyJet</p>
             </div>
             
             <div>
@@ -896,7 +919,7 @@
             </div>
         </div>
         <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400 text-sm">
-            <p>&copy; 2024 Predicteur Pro Premium. Tous droits réservés.</p>
+            <p>&copy; 2024 LuckyJet Predictor Premium. Tous droits réservés.</p>
         </div>
     </div>
 </footer>
@@ -997,7 +1020,7 @@
                 icon: 'error',
                 title: 'Licence invalide',
                 text: 'Votre licence n\'est pas valide ou a expiré',
-                confirmButtonColor: '#dc3545'
+                confirmButtonColor: '#8a00e1'
             });
             return;
         }
@@ -1009,7 +1032,7 @@
         statusElement.innerHTML = `
             <span class="bg-green-500 rounded-full w-2 h-2 inline-block mr-1"></span>
             <span>Récupération en cours...</span>
-            <span class="fetching-spinner ml-2 w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full inline-block animate-spin"></span>
+            <span class="fetching-spinner ml-2 w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full inline-block animate-spin"></span>
         `;
         
         // Démarrer immédiatement une première récupération
@@ -1214,7 +1237,7 @@
         displayElement.innerHTML = `
             <div class="flex flex-wrap justify-center">
                 ${autoCoefficients.map(coef => `
-                    <div class="coefficient-badge text-xs">${coef}</div>
+                    <div class="coefficient-badge text-xs">${coef}X</div>
                 `).join('')}
             </div>
             <div class="text-center mt-2 text-xs text-gray-400">
@@ -1223,7 +1246,7 @@
         `;
     }
     
-    // FONCTION DE PRÉDICTION DU PREMIER FICHIER (ADAPTÉE)
+    // FONCTION DE PRÉDICTION
     function predictOdds(autoTriggered = false) {
         if (!window.checkLicenseBeforeOperation || !window.checkLicenseBeforeOperation()) return;
         
@@ -1242,7 +1265,7 @@
                 icon: 'error',
                 title: 'Données Insuffisantes',
                 text: 'Veuillez attendre au moins 5 côtes valides',
-                confirmButtonColor: '#3B82F6',
+                confirmButtonColor: '#8a00e1',
                 toast: true,
                 position: 'top'
             });
@@ -1309,7 +1332,7 @@
             title: 'Prédiction Générée!',
             html: `
                 <div class="text-left text-sm">
-                    <p>Côte moyenne: <strong>${predictionResult.averageOdds}</strong></p>
+                    <p>Multiplicateur prédit: <strong>${predictionResult.averageOdds}X</strong></p>
                     <p class="text-gray-300">Probabilité: ${predictionResult.probabilities[0]}%</p>
                     <p class="text-gray-300">Mode: ${settings.analysisMode}</p>
                 </div>
@@ -1376,8 +1399,8 @@
         document.getElementById('result').innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="text-center p-3 bg-gray-800 rounded-lg">
-                    <span class="text-xs text-gray-400 block mb-1">Côte Probable</span>
-                    <p class="text-2xl font-bold text-blue-400">${prediction.averageOdds}</p>
+                    <span class="text-xs text-gray-400 block mb-1">Multiplicateur Prédit</span>
+                    <p class="text-2xl font-bold text-purple-400">${prediction.averageOdds}X</p>
                 </div>
                 
                 <div class="text-center p-3 bg-gray-800 rounded-lg">
@@ -1415,7 +1438,7 @@
                             <div>
                                 <p class="font-semibold text-white text-sm">${prediction.date}</p>
                                 <p class="text-xs text-gray-400">
-                                    Prédiction: <span class="font-bold text-blue-400">${prediction.averageOdds}</span> 
+                                    Prédiction: <span class="font-bold text-purple-400">${prediction.averageOdds}X</span> 
                                     <span class="ml-1">(${prediction.probabilities[0]}%)</span>
                                 </p>
                             </div>
@@ -1507,12 +1530,12 @@
                         <label class="block text-gray-300 mb-1">Options d'Analyse</label>
                         <div class="space-y-1">
                             <label class="flex items-center p-1.5 bg-gray-800 rounded-lg hover:bg-gray-700 cursor-pointer">
-                                <input type="checkbox" id="excludeExtremes" class="mr-2 h-4 w-4 text-blue-500" 
+                                <input type="checkbox" id="excludeExtremes" class="mr-2 h-4 w-4 text-purple-500" 
                                     ${currentSettings.excludeExtremes ? 'checked' : ''}>
                                 Exclure les valeurs extrêmes
                             </label>
                             <label class="flex items-center p-1.5 bg-gray-800 rounded-lg hover:bg-gray-700 cursor-pointer">
-                                <input type="checkbox" id="trendAnalysis" class="mr-2 h-4 w-4 text-blue-500"
+                                <input type="checkbox" id="trendAnalysis" class="mr-2 h-4 w-4 text-purple-500"
                                     ${currentSettings.trendAnalysis ? 'checked' : ''}>
                                 Analyse tendancielle
                             </label>
@@ -1520,13 +1543,13 @@
                     </div>
                 </div>
             `,
-            background: '#1E293B',
+            background: '#1a1a2e',
             color: 'white',
             showCancelButton: true,
             confirmButtonText: 'Sauvegarder',
             cancelButtonText: 'Annuler',
-            confirmButtonColor: '#3B82F6',
-            cancelButtonColor: '#EF4444',
+            confirmButtonColor: '#8a00e1',
+            cancelButtonColor: '#ff5555',
             preConfirm: () => {
                 const settings = {
                     analysisMode: document.getElementById('analysisMode').value,
@@ -1572,13 +1595,13 @@
         document.getElementById('intelligentAnalysis').innerHTML = `
             <div class="space-y-3">
                 <div class="p-2 bg-gray-800 rounded-lg">
-                    <div class="font-bold text-blue-400 mb-1 text-sm">
+                    <div class="font-bold text-purple-400 mb-1 text-sm">
                         <i class="fas fa-chart-line mr-1"></i>
                         Meilleur Intervalle de Probabilité
                     </div>
-                    <p class="text-blue-300 text-xs">
+                    <p class="text-purple-300 text-xs">
                         ${percentageRanges.bestRange}% (${percentageRanges.bestCount} succès)
-                        <span class="block text-blue-400 text-xs">
+                        <span class="block text-purple-400 text-xs">
                             Taux de réussite: ${percentageRanges.successRate}%
                         </span>
                     </p>
@@ -1598,13 +1621,13 @@
                 </div>
 
                 <div class="p-2 bg-gray-800 rounded-lg">
-                    <div class="font-bold text-purple-400 mb-1 text-sm">
+                    <div class="font-bold text-pink-400 mb-1 text-sm">
                         <i class="fas fa-trophy mr-1"></i>
-                        Meilleures Côtes
+                        Meilleurs Multiplicateurs
                     </div>
-                    <p class="text-purple-300 text-xs">
-                        ${oddsAnalysis.bestRange}
-                        <span class="block text-purple-400 text-xs">
+                    <p class="text-pink-300 text-xs">
+                        ${oddsAnalysis.bestRange}X
+                        <span class="block text-pink-400 text-xs">
                             (${oddsAnalysis.successCount} succès)
                         </span>
                     </p>
@@ -1727,32 +1750,32 @@
             historyContainer.style.display = 'block';
             toggleButton.textContent = 'Masquer';
             toggleButton.classList.remove('bg-green-500');
-            toggleButton.classList.add('bg-blue-500');
+            toggleButton.classList.add('bg-purple-500');
         } else {
             historyContainer.style.display = 'none';
             toggleButton.textContent = 'Afficher';
-            toggleButton.classList.remove('bg-blue-500');
+            toggleButton.classList.remove('bg-purple-500');
             toggleButton.classList.add('bg-green-500');
         }
     }
     
     function showGuide() {
         Swal.fire({
-            title: '🚀 Guide du Predicteur Pro Premium',
+            title: '🚀 Guide du LuckyJet Predictor Premium',
             html: `
                 <div class="text-left space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                     <div>
-                        <h3 class="text-lg font-bold text-blue-400">📘 Compatibilité des Jeux</h3>
+                        <h3 class="text-lg font-bold text-purple-400">📘 Compatibilité</h3>
                         <ul class="list-disc pl-5 text-sm text-gray-300">
-                            <li>Aviator</li>
+                            <li>LuckyJet</li>
                             <li>Crash</li>
                             <li>Jeux avec progression exponentielle des gains</li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 class="text-lg font-bold text-blue-400">📝 Système de Licence</h3>
-                        <div class="bg-blue-900/30 p-3 rounded-lg text-sm text-gray-300">
+                        <h3 class="text-lg font-bold text-purple-400">📝 Système de Licence</h3>
+                        <div class="bg-purple-900/30 p-3 rounded-lg text-sm text-gray-300">
                             <p class="font-bold mb-2">Fonctionnement :</p>
                             <ul class="list-disc pl-5">
                                 <li>Licence active nécessaire</li>
@@ -1762,8 +1785,8 @@
                     </div>
 
                     <div>
-                        <h3 class="text-lg font-bold text-blue-400">⚙️ Paramétrage Recommandé</h3>
-                        <div class="bg-blue-900/30 p-3 rounded-lg text-sm text-gray-300">
+                        <h3 class="text-lg font-bold text-purple-400">⚙️ Paramétrage Recommandé</h3>
+                        <div class="bg-purple-900/30 p-3 rounded-lg text-sm text-gray-300">
                             <p class="font-bold mb-2">Pour une précision optimale :</p>
                             <ul class="list-disc pl-5">
                                 <li><span class="font-semibold">Mode d'Analyse :</span> Professionnel</li>
@@ -1773,7 +1796,7 @@
                     </div>
 
                     <div>
-                        <h3 class="text-lg font-bold text-blue-400">🎲 Conditions d'Utilisation</h3>
+                        <h3 class="text-lg font-bold text-purple-400">🎲 Conditions d'Utilisation</h3>
                         <ul class="list-disc pl-5 text-sm text-gray-300">
                             <li>Minimum 5 coefficients récupérés pour une prédiction</li>
                             <li>Vérification automatique sur 5 rounds</li>
@@ -1788,10 +1811,10 @@
                 </div>
             `,
             width: '600px',
-            background: '#1E293B',
+            background: '#1a1a2e',
             color: 'white',
             confirmButtonText: 'J\'ai compris',
-            confirmButtonColor: '#3B82F6'
+            confirmButtonColor: '#8a00e1'
         });
     }
 
