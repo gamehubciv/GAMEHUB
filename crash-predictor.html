@@ -8,480 +8,1024 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Script Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { 
+            getFirestore,
+            collection,
+            query,
+            getDocs,
+            where
+        } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+        
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhySV3lXOlCQ8fMIYRlzs0YpMg6MZ_Ixo",
+            authDomain: "gamehub-e45ea.firebaseapp.com",
+            projectId: "gamehub-e45ea",
+            storageBucket: "gamehub-e45ea.firebasestorage.app",
+            messagingSenderId: "609288909968",
+            appId: "1:609288909968:web:45f3716ce6b2d4970d1415"
+        };
+
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Variables globales pour la licence
+        window.userLicense = null;
+        window.isLicenseValid = false;
+        window.licenseCheckInterval = null;
+        window.userData = null;
+        
+        // Vérifier l'état d'authentification et la licence
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Vérifier si l'email est vérifié
+                if (!user.emailVerified) {
+                    showLicenseMessage("Email non vérifié", "Veuillez vérifier votre email pour accéder au prédicteur", true);
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 5000);
+                    return;
+                }
+                
+                console.log("Utilisateur connecté:", user.uid);
+                window.userData = user;
+                
+                // Vérifier la licence
+                await checkUserLicense(user.uid);
+                
+                // Démarrer la vérification périodique de la licence
+                startLicenseCheck();
+                
+                // Afficher l'info utilisateur
+                updateUserInfo(user);
+            } else {
+                // Rediriger vers la page de connexion si non connecté
+                showLicenseMessage("Non connecté", "Vous devez être connecté pour utiliser le prédicteur", true);
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            }
+        });
+
+        // Vérifier la licence de l'utilisateur pour le jeu Crash
+        async function checkUserLicense(userId) {
+            console.log("Vérification de la licence pour l'utilisateur:", userId);
+            
+            try {
+                const userPurchasesRef = collection(db, 'users', userId, 'purchases');
+                
+                // Chercher toutes les licences pour 'crash'
+                const q = query(
+                    userPurchasesRef,
+                    where('gameId', '==', 'crash')
+                );
+                
+                console.log("Exécution de la requête Firestore...");
+                const querySnapshot = await getDocs(q);
+                console.log("Résultats trouvés:", querySnapshot.size);
+                
+                if (querySnapshot.empty) {
+                    console.log("Aucune licence trouvée pour 'crash'");
+                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur Crash", true);
+                    window.isLicenseValid = false;
+                    disableBotFeatures();
+                    return;
+                }
+                
+                let activeLicense = null;
+                let latestLicense = null;
+                let now = new Date();
+                
+                // Parcourir tous les résultats
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    console.log("Document trouvé:", data);
+                    
+                    const expirationDate = new Date(data.expirationDate);
+                    const purchaseDate = new Date(data.purchaseDate);
+                    
+                    console.log("Statut:", data.status);
+                    console.log("Date d'expiration:", expirationDate);
+                    console.log("Date d'achat:", purchaseDate);
+                    
+                    // Vérifier si la licence est active ET non expirée
+                    if (data.status === 'active' && expirationDate > now) {
+                        if (!activeLicense || purchaseDate > new Date(activeLicense.purchaseDate)) {
+                            activeLicense = {
+                                id: doc.id,
+                                ...data,
+                                expirationDate: expirationDate,
+                                purchaseDate: purchaseDate,
+                                remainingTime: expirationDate - now
+                            };
+                        }
+                    }
+                    
+                    // Garder la licence la plus récente même si expirée (pour debug)
+                    if (!latestLicense || purchaseDate > new Date(latestLicense.purchaseDate)) {
+                        latestLicense = {
+                            id: doc.id,
+                            ...data,
+                            expirationDate: expirationDate,
+                            purchaseDate: purchaseDate
+                        };
+                    }
+                });
+                
+                if (activeLicense) {
+                    // Licence active trouvée
+                    window.userLicense = activeLicense;
+                    window.isLicenseValid = true;
+                    
+                    const remainingHours = Math.floor(window.userLicense.remainingTime / (1000 * 60 * 60));
+                    const remainingMinutes = Math.floor((window.userLicense.remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    console.log("Licence active trouvée:", window.userLicense);
+                    console.log("Temps restant:", remainingHours + "h " + remainingMinutes + "m");
+                    
+                    showLicenseMessage(
+                        "Licence active ✓", 
+                        `Temps restant: ${remainingHours}h ${remainingMinutes}m`, 
+                        false
+                    );
+                    
+                    // Activer les fonctionnalités du bot
+                    enableBotFeatures();
+                    
+                    // Masquer le message après 3 secondes
+                    setTimeout(() => {
+                        hideLicenseMessage();
+                    }, 3000);
+                    
+                } else if (latestLicense) {
+                    // Afficher les détails de la licence trouvée (pour debug)
+                    console.log("Licence trouvée mais inactive ou expirée:", latestLicense);
+                    
+                    const now = new Date();
+                    const expirationDate = new Date(latestLicense.expirationDate);
+                    const isExpired = expirationDate < now;
+                    const isInactive = latestLicense.status !== 'active';
+                    
+                    let message = "Licence ";
+                    if (isInactive) message += "inactive";
+                    if (isExpired) message += isInactive ? " et expirée" : "expirée";
+                    
+                    showLicenseMessage(
+                        message,
+                        `Date d'expiration: ${expirationDate.toLocaleDateString()} ${expirationDate.toLocaleTimeString()}`,
+                        true
+                    );
+                    
+                    window.isLicenseValid = false;
+                    disableBotFeatures();
+                } else {
+                    console.log("Aucune licence valide trouvée");
+                    showLicenseMessage("Licence non valide", "Votre licence n'est pas active ou a expiré", true);
+                    window.isLicenseValid = false;
+                    disableBotFeatures();
+                }
+                
+            } catch (error) {
+                console.error('Erreur lors de la vérification de la licence:', error);
+                console.error('Détails de l\'erreur:', error.message);
+                
+                // Afficher un message d'erreur détaillé
+                showLicenseMessage(
+                    "Erreur technique", 
+                    "Impossible de vérifier votre licence. Veuillez réessayer.", 
+                    true
+                );
+                window.isLicenseValid = false;
+                disableBotFeatures();
+            }
+        }
+
+        // Démarrer la vérification périodique de la licence
+        function startLicenseCheck() {
+            if (window.licenseCheckInterval) {
+                clearInterval(window.licenseCheckInterval);
+            }
+            
+            // Vérifier toutes les 30 secondes
+            window.licenseCheckInterval = setInterval(async () => {
+                const user = auth.currentUser;
+                if (user && window.isLicenseValid) {
+                    await checkUserLicense(user.uid);
+                }
+            }, 30000);
+        }
+
+        // Afficher un message de licence
+        function showLicenseMessage(title, message, isError = false) {
+            const existingMessage = document.getElementById('licenseMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'licenseMessage';
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${isError ? 'rgba(220, 53, 69, 0.95)' : 'rgba(40, 167, 69, 0.95)'};
+                color: white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+                text-align: center;
+                max-width: 90%;
+                backdrop-filter: blur(10px);
+                border: 1px solid ${isError ? 'rgba(220, 53, 69, 0.3)' : 'rgba(40, 167, 69, 0.3)'};
+            `;
+            
+            messageDiv.innerHTML = `
+                <strong style="font-size: 16px;">${title}</strong><br>
+                <span style="font-size: 14px;">${message}</span>
+                ${isError ? '<br><button id="goToStore" style="margin-top: 10px; padding: 8px 16px; background: white; color: #dc3545; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Acheter une licence</button>' : ''}
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            if (isError) {
+                const goToStoreBtn = document.getElementById('goToStore');
+                if (goToStoreBtn) {
+                    goToStoreBtn.addEventListener('click', () => {
+                        window.location.href = 'accueil.html';
+                    });
+                }
+            }
+        }
+
+        // Masquer le message de licence
+        function hideLicenseMessage() {
+            const messageDiv = document.getElementById('licenseMessage');
+            if (messageDiv) {
+                messageDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }
+        }
+
+        // Désactiver les fonctionnalités du bot
+        function disableBotFeatures() {
+            console.log("Désactivation des fonctionnalités du bot");
+            
+            // Arrêter la récupération automatique si active
+            if (window.autoFetchInterval) {
+                clearInterval(window.autoFetchInterval);
+                window.autoFetchInterval = null;
+                window.isAutoFetchActive = false;
+                
+                const statusElement = document.getElementById('autoFetchStatus');
+                if (statusElement) {
+                    statusElement.innerHTML = `
+                        <span class="bg-red-500 rounded-full w-2 h-2 inline-block mr-1"></span>
+                        <span>Licence expirée</span>
+                    `;
+                }
+            }
+            
+            // Désactiver les boutons
+            const startButton = document.querySelector('button[onclick="startAutoFetch()"]');
+            const stopButton = document.querySelector('button[onclick="stopAutoFetch()"]');
+            const optionsButton = document.querySelector('button[onclick="openAdvancedSettings()"]');
+            const analyzeButton = document.querySelector('button[onclick="analyzeHistoricalData()"]');
+            
+            if (startButton) {
+                startButton.disabled = true;
+                startButton.style.opacity = '0.5';
+                startButton.style.cursor = 'not-allowed';
+            }
+            
+            if (stopButton) {
+                stopButton.disabled = true;
+                stopButton.style.opacity = '0.5';
+                stopButton.style.cursor = 'not-allowed';
+            }
+            
+            if (optionsButton) {
+                optionsButton.disabled = true;
+                optionsButton.style.opacity = '0.5';
+                optionsButton.style.cursor = 'not-allowed';
+            }
+            
+            if (analyzeButton) {
+                analyzeButton.disabled = true;
+                analyzeButton.style.opacity = '0.5';
+                analyzeButton.style.cursor = 'not-allowed';
+            }
+            
+            // Afficher un indicateur de licence expirée
+            const licenseIndicator = document.getElementById('licenseIndicator');
+            if (licenseIndicator) {
+                licenseIndicator.innerHTML = `
+                    <span class="bg-red-500 rounded-full w-2 h-2 inline-block mr-1"></span>
+                    <span class="text-red-600 font-medium">Licence expirée</span>
+                `;
+            }
+            
+            // Afficher un message dans la zone de résultats
+            const resultElement = document.getElementById('result');
+            if (resultElement) {
+                resultElement.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-key text-3xl text-purple-400 mb-3"></i>
+                        <p class="text-gray-600">Le prédicteur est verrouillé</p>
+                        <p class="text-sm text-gray-500 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Activer les fonctionnalités du bot
+        function enableBotFeatures() {
+            console.log("Activation des fonctionnalités du bot");
+            
+            // Activer les boutons
+            const startButton = document.querySelector('button[onclick="startAutoFetch()"]');
+            const stopButton = document.querySelector('button[onclick="stopAutoFetch()"]');
+            const optionsButton = document.querySelector('button[onclick="openAdvancedSettings()"]');
+            const analyzeButton = document.querySelector('button[onclick="analyzeHistoricalData()"]');
+            
+            if (startButton) {
+                startButton.disabled = false;
+                startButton.style.opacity = '1';
+                startButton.style.cursor = 'pointer';
+            }
+            
+            if (stopButton) {
+                stopButton.disabled = false;
+                stopButton.style.opacity = '1';
+                stopButton.style.cursor = 'pointer';
+            }
+            
+            if (optionsButton) {
+                optionsButton.disabled = false;
+                optionsButton.style.opacity = '1';
+                optionsButton.style.cursor = 'pointer';
+            }
+            
+            if (analyzeButton) {
+                analyzeButton.disabled = false;
+                analyzeButton.style.opacity = '1';
+                analyzeButton.style.cursor = 'pointer';
+            }
+            
+            // Mettre à jour l'indicateur de licence
+            const licenseIndicator = document.getElementById('licenseIndicator');
+            if (licenseIndicator) {
+                const remainingHours = Math.floor(window.userLicense.remainingTime / (1000 * 60 * 60));
+                const remainingMinutes = Math.floor((window.userLicense.remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                
+                licenseIndicator.innerHTML = `
+                    <span class="bg-green-500 rounded-full w-2 h-2 inline-block mr-1"></span>
+                    <span class="text-green-600 font-medium">Licence active: ${remainingHours}h ${remainingMinutes}m</span>
+                `;
+            }
+            
+            // Vider la zone de résultats
+            const resultElement = document.getElementById('result');
+            if (resultElement) {
+                resultElement.innerHTML = '';
+            }
+        }
+
+        // Mettre à jour les informations utilisateur
+        function updateUserInfo(user) {
+            const userInfoElement = document.getElementById('userInfo');
+            if (userInfoElement) {
+                userInfoElement.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold mr-2">
+                            ${user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div class="text-left">
+                            <p class="text-xs font-medium text-gray-700">${user.email || 'Utilisateur'}</p>
+                            <p class="text-xs text-gray-500">Prédicteur Pro</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Fonction de déconnexion
+        window.logoutUser = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Erreur lors de la déconnexion:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Impossible de se déconnecter'
+                });
+            }
+        };
+
+        // Exposer les fonctions globalement
+        window.checkLicenseBeforeOperation = function() {
+            if (!window.isLicenseValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Licence expirée',
+                    text: 'Votre licence a expiré. Veuillez en acheter une nouvelle.',
+                    confirmButtonText: 'Acheter une licence',
+                    showCancelButton: true,
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'accueil.html';
+                    }
+                });
+                return false;
+            }
+            return true;
+        };
+    </script>
+
     <style>
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: .5; }
-    }
-    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        /* Ajouter les animations pour les messages de licence */
+        @keyframes slideIn {
+            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-    @keyframes bounce {
-        0%, 100% { transform: translateY(-25%); }
-        50% { transform: translateY(0); }
-    }
-    .animate-bounce { animation: bounce 1s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-25%); }
+            50% { transform: translateY(0); }
+        }
+        .animate-bounce { animation: bounce 1s infinite; }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.8); }
-        to { opacity: 1; transform: scale(1); }
-    }
-    
-    .countdown-container {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: linear-gradient(145deg, #f3f4f6, #ffffff);
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .coefficient-badge {
-        display: inline-block;
-        background: linear-gradient(145deg, #8A2BE2, #6A1BB2);
-        color: white;
-        border-radius: 9999px;
-        padding: 0.25rem 0.75rem;
-        font-size: 0.875rem;
-        margin: 0.25rem;
-        animation: fadeIn 0.3s ease-out;
-    }
-    
-    .auto-fetch-container {
-        background: linear-gradient(145deg, #f0f4f8, #def1ff);
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    
-    .verification-status {
-        padding: 0.5rem;
-        border-radius: 8px;
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-        text-align: center;
-    }
-    
-    .verification-in-progress {
-        background-color: #fffbeb;
-        color: #854d0e;
-        border: 1px solid #fde68a;
-    }
-    
-    .verification-success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
-    }
-    
-    .verification-failed {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border: 1px solid #fca5a5;
-    }
-    
-    .round-indicator {
-        display: inline-block;
-        background: linear-gradient(145deg, #6A1BB2, #8A2BE2);
-        color: white;
-        border-radius: 8px;
-        padding: 0.3rem 0.8rem;
-        font-weight: bold;
-        font-size: 0.9rem;
-        margin: 0.1rem;
-    }
-    
-    .history-item {
-        transition: all 0.3s ease;
-    }
-    
-    .history-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .stats-card {
-        background: linear-gradient(145deg, #ffffff, #f9fafb);
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 1rem;
-    }
-    
-    .robot-header {
-        background: linear-gradient(135deg, #6A1BB2, #8A2BE2);
-        color: white;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .feature-card {
-        background: linear-gradient(145deg, #f0f9ff, #e0f7fa);
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        border: 1px solid #bae6fd;
-    }
-    
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
-    
-    .floating {
-        animation: float 3s ease-in-out infinite;
-    }
-    
-    @keyframes glow {
-        0% { box-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
-        50% { box-shadow: 0 0 20px rgba(138, 43, 226, 0.8); }
-        100% { box-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
-    }
-    
-    .glowing {
-        animation: glow 2s infinite;
-    }
-    
-    .confidence-level {
-        height: 10px;
-        border-radius: 5px;
-        background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
-    }
-    
-    .confidence-fill {
-        height: 100%;
-        border-radius: 5px;
-        background: #8A2BE2;
-        transition: width 1s ease-in-out;
-    }
-    
-    .trend-indicator {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: bold;
-    }
-    
-    .trend-up {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-    
-    .trend-down {
-        background-color: #fee2e2;
-        color: #b91c1c;
-    }
-    
-    .trend-stable {
-        background-color: rgba(138, 43, 226, 0.1);
-        color: #6A1BB2;
-    }
-    
-    .pattern-indicator {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        margin-left: 5px;
-    }
-    
-    .pattern-bullish {
-        background-color: #dcfce7;
-        color: #166534;
-        border-left: 3px solid #10b981;
-    }
-    
-    .pattern-bearish {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border-left: 3px solid #ef4444;
-    }
-    
-    .pattern-neutral {
-        background-color: rgba(138, 43, 226, 0.1);
-        color: #6A1BB2;
-        border-left: 3px solid #8A2BE2;
-    }
-    
-    .duplicate-warning {
-        background-color: #fffbeb;
-        color: #854d0e;
-        border: 1px solid #fde68a;
-        padding: 8px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        text-align: center;
-        margin-top: 10px;
-        animation: fadeIn 0.5s ease-out;
-    }
-    
-    body {
-        background: linear-gradient(135deg, #f0f9ff, #e6f7ff);
-        min-height: 100vh;
-    }
-    
-    .dashboard-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        overflow: hidden;
-        transition: transform 0.3s ease;
-        padding: 1rem;
-    }
-    
-    .dashboard-card:hover {
-        transform: translateY(-3px);
-    }
-    
-    .gradient-btn {
-        background: linear-gradient(135deg, #8A2BE2, #6A1BB2);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-    }
-    
-    .gradient-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(138, 43, 226, 0.25);
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .status-pending {
-        background: #fffbeb;
-        color: #d97706;
-    }
-    
-    .status-success {
-        background: #dcfce7;
-        color: #166534;
-    }
-    
-    .status-failed {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-    
-    .validation-container {
-        margin-top: 1.2rem;
-        padding: 1rem;
-        background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
-        border-radius: 10px;
-        border: 1px solid #bae6fd;
-    }
-    
-    .validation-status {
-        padding: 0.6rem;
-        border-radius: 6px;
-        margin-top: 0.4rem;
-        font-size: 0.85rem;
-        text-align: center;
-        font-weight: 500;
-    }
-    
-    .validation-pending {
-        background-color: #fffbeb;
-        color: #854d0e;
-        border: 1px solid #fde68a;
-    }
-    
-    .validation-success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
-    }
-    
-    .validation-failed {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border: 1px solid #fca5a5;
-    }
-    
-    .advanced-input {
-        position: relative;
-    }
-    
-    .advanced-input .tooltip {
-        visibility: hidden;
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.3s;
-        z-index: 10;
-    }
-    
-    .advanced-input:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-    
-    .custom-button {
-        transition: all 0.3s ease;
-    }
-    
-    .custom-button:hover {
-        transform: translateY(-2px);
-    }
-    
-    .stats-detail {
-        font-size: 0.75rem;
-        color: #666;
-        margin-top: 0.25rem;
-    }
-    
-    .mode-badge {
-        font-size: 0.65rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background-color: #e2e8f0;
-        color: #4a5568;
-        margin-top: 2px;
-        display: inline-block;
-    }
-    
-    .prediction-accuracy {
-        font-size: 0.75rem;
-        color: #4B5563;
-        background-color: #F3F4F6;
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
-        display: inline-block;
-        margin-top: 0.25rem;
-    }
-    
-    .analysis-card {
-        transition: all 0.3s ease;
-    }
-    
-    .analysis-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .round-notification {
-        background: linear-gradient(145deg, #8A2BE2, #6A1BB2);
-        color: white;
-        padding: 12px;
-        border-radius: 10px;
-        text-align: center;
-        margin-top: 15px;
-        font-weight: 500;
-        font-size: 0.95rem;
-        animation: fadeIn 0.5s ease-out;
-    }
-    
-    .margin-info {
-        background: linear-gradient(145deg, #f59e0b, #fbbf24);
-        color: #854d0e;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 10px;
-        font-size: 0.85rem;
-        text-align: center;
-        font-weight: 500;
-    }
-    
-    @media (max-width: 768px) {
-        .container {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-            max-width: 100%;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
         }
         
-        .robot-header {
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
+        .countdown-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(145deg, #f3f4f6, #ffffff);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
-        .robot-header h1 {
-            font-size: 1.5rem;
-        }
-        
-        .dashboard-card {
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-        
-        .grid-cols-1 {
-            gap: 0.75rem;
-        }
-        
-        .grid-cols-1.md\:grid-cols-2 {
-            gap: 0.75rem;
-        }
-        
-        .feature-card {
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stats-card {
-            padding: 0.75rem;
-        }
-        
-        .gradient-btn {
-            padding: 8px 16px;
-            font-size: 0.85rem;
+        .coefficient-badge {
+            display: inline-block;
+            background: linear-gradient(145deg, #8A2BE2, #6A1BB2);
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            margin: 0.25rem;
+            animation: fadeIn 0.3s ease-out;
         }
         
         .auto-fetch-container {
-            padding: 12px;
+            background: linear-gradient(145deg, #f0f4f8, #def1ff);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         
-        footer {
-            padding: 1rem 0;
-        }
-        
-        footer .grid {
-            gap: 1.5rem;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .container {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-        
-        .robot-header h1 {
-            font-size: 1.3rem;
-        }
-        
-        .dashboard-card {
+        .verification-status {
             padding: 0.5rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            text-align: center;
         }
         
-        .gradient-btn {
-            font-size: 0.8rem;
-            padding: 6px 12px;
+        .verification-in-progress {
+            background-color: #fffbeb;
+            color: #854d0e;
+            border: 1px solid #fde68a;
+        }
+        
+        .verification-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        
+        .verification-failed {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+        
+        .round-indicator {
+            display: inline-block;
+            background: linear-gradient(145deg, #6A1BB2, #8A2BE2);
+            color: white;
+            border-radius: 8px;
+            padding: 0.3rem 0.8rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin: 0.1rem;
+        }
+        
+        .history-item {
+            transition: all 0.3s ease;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card {
+            background: linear-gradient(145deg, #ffffff, #f9fafb);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 1rem;
+        }
+        
+        .robot-header {
+            background: linear-gradient(135deg, #6A1BB2, #8A2BE2);
+            color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
         
         .feature-card {
-            padding: 0.5rem;
+            background: linear-gradient(145deg, #f0f9ff, #e0f7fa);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #bae6fd;
         }
-    }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(138, 43, 226, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(138, 43, 226, 0.5); }
+        }
+        
+        .glowing {
+            animation: glow 2s infinite;
+        }
+        
+        .confidence-level {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            border-radius: 5px;
+            background: #8A2BE2;
+            transition: width 1s ease-in-out;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .trend-up {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .trend-down {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .trend-stable {
+            background-color: rgba(138, 43, 226, 0.1);
+            color: #6A1BB2;
+        }
+        
+        .pattern-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .pattern-bullish {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 3px solid #10b981;
+        }
+        
+        .pattern-bearish {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border-left: 3px solid #ef4444;
+        }
+        
+        .pattern-neutral {
+            background-color: rgba(138, 43, 226, 0.1);
+            color: #6A1BB2;
+            border-left: 3px solid #8A2BE2;
+        }
+        
+        .duplicate-warning {
+            background-color: #fffbeb;
+            color: #854d0e;
+            border: 1px solid #fde68a;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 10px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f9ff, #e6f7ff);
+            min-height: 100vh;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            padding: 1rem;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .gradient-btn {
+            background: linear-gradient(135deg, #8A2BE2, #6A1BB2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(138, 43, 226, 0.25);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #fffbeb;
+            color: #d97706;
+        }
+        
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-failed {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .validation-container {
+            margin-top: 1.2rem;
+            padding: 1rem;
+            background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
+            border-radius: 10px;
+            border: 1px solid #bae6fd;
+        }
+        
+        .validation-status {
+            padding: 0.6rem;
+            border-radius: 6px;
+            margin-top: 0.4rem;
+            font-size: 0.85rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .validation-pending {
+            background-color: #fffbeb;
+            color: #854d0e;
+            border: 1px solid #fde68a;
+        }
+        
+        .validation-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        
+        .validation-failed {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+        
+        .advanced-input {
+            position: relative;
+        }
+        
+        .advanced-input .tooltip {
+            visibility: hidden;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+        
+        .advanced-input:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .custom-button {
+            transition: all 0.3s ease;
+        }
+        
+        .custom-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stats-detail {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .mode-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            margin-top: 2px;
+            display: inline-block;
+        }
+        
+        .prediction-accuracy {
+            font-size: 0.75rem;
+            color: #4B5563;
+            background-color: #F3F4F6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        
+        .analysis-card {
+            transition: all 0.3s ease;
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .round-notification {
+            background: linear-gradient(145deg, #8A2BE2, #6A1BB2);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .margin-info {
+            background: linear-gradient(145deg, #f59e0b, #fbbf24);
+            color: #854d0e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        /* Ajouter un en-tête utilisateur */
+        .user-header {
+            background: linear-gradient(135deg, #6A1BB2, #8A2BE2);
+            color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .license-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+                max-width: 100%;
+            }
+            
+            .robot-header {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .robot-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .dashboard-card {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .grid-cols-1 {
+                gap: 0.75rem;
+            }
+            
+            .grid-cols-1.md\:grid-cols-2 {
+                gap: 0.75rem;
+            }
+            
+            .feature-card {
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .stats-card {
+                padding: 0.75rem;
+            }
+            
+            .gradient-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+            
+            .auto-fetch-container {
+                padding: 12px;
+            }
+            
+            footer {
+                padding: 1rem 0;
+            }
+            
+            footer .grid {
+                gap: 1.5rem;
+            }
+            
+            .user-header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 0.75rem;
+            }
+            
+            .license-indicator {
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .logout-btn {
+                padding: 0.25rem 0.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .robot-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .dashboard-card {
+                padding: 0.5rem;
+            }
+            
+            .gradient-btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            
+            .feature-card {
+                padding: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
+
+<!-- En-tête utilisateur et licence -->
+<div class="container mx-auto px-2 py-4">
+    <div class="user-header">
+        <div id="userInfo" class="flex items-center">
+            <div class="animate-pulse">
+                <div class="w-8 h-8 rounded-full bg-gray-300 mr-2"></div>
+            </div>
+            <div>
+                <p class="text-sm font-medium">Vérification en cours...</p>
+                <p class="text-xs opacity-80">Prédicteur Pro Crash</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <div id="licenseIndicator" class="license-indicator">
+                <span class="bg-yellow-500 rounded-full w-2 h-2 inline-block mr-1 animate-pulse"></span>
+                <span>Vérification licence...</span>
+            </div>
+            
+            <button onclick="logoutUser()" class="logout-btn">
+                <i class="fas fa-sign-out-alt mr-2"></i>
+                Déconnexion
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Interface principale -->
 <div class="container mx-auto px-2 py-4" id="mainApp">
@@ -497,29 +1041,33 @@
                         </div>
                         <div class="auto-fetch-status text-gray-700 text-sm" id="autoFetchStatus">
                             <span class="auto-fetch-dot bg-red-500 rounded-full w-2 h-2 inline-block mr-1"></span>
-                            <span>Inactif</span>
+                            <span>En attente de licence</span>
                         </div>
                     </div>
                     
                     <div class="coefficients-display mt-3 bg-white rounded-lg p-3" id="coefficientsDisplay">
-                        <p class="text-center text-gray-500 text-sm">Les coefficients apparaîtront ici</p>
+                        <p class="text-center text-gray-500 text-sm">Vérifiez votre licence pour activer le prédicteur</p>
                     </div>
                     
                     <div class="flex gap-3 mt-3 flex-wrap">
-                        <button onclick="startAutoFetch()" class="flex-1 gradient-btn min-w-[120px]">
+                        <button onclick="startAutoFetch()" class="flex-1 gradient-btn min-w-[120px]" disabled>
                             <i class="fas fa-play mr-2"></i> Démarrer
                         </button>
-                        <button onclick="stopAutoFetch()" class="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]">
+                        <button onclick="stopAutoFetch()" class="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]" disabled>
                             <i class="fas fa-stop mr-2"></i> Arrêter
                         </button>
-                        <button onclick="openAdvancedSettings()" class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]">
+                        <button onclick="openAdvancedSettings()" class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]" disabled>
                             <i class="fas fa-cog mr-2"></i> Options
                         </button>
                     </div>
                 </div>
                 
                 <div id="result" class="bg-gray-50 rounded-lg p-4 mt-4 border border-gray-200">
-                    <!-- Les résultats des prédictions automatiques apparaîtront ici -->
+                    <div class="text-center p-4">
+                        <i class="fas fa-key text-3xl text-purple-400 mb-3"></i>
+                        <p class="text-gray-600">Le prédicteur est verrouillé</p>
+                        <p class="text-sm text-gray-500 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -560,13 +1108,14 @@
                         <i class="fas fa-brain text-purple-500 mr-2"></i>
                         Analyse Intelligence
                     </h3>
-                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition">
+                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" disabled>
                         Actualiser
                     </button>
                 </div>
                 <div id="intelligentAnalysis" class="text-xs space-y-2">
-                    <div class="animate-pulse text-gray-500">
-                        Cliquez sur Actualiser pour analyser les données
+                    <div class="text-center text-gray-500 p-3">
+                        <i class="fas fa-lock text-2xl text-gray-400 mb-2"></i>
+                        <p>Activez votre licence pour débloquer l'analyse</p>
                     </div>
                 </div>
             </div>
@@ -586,7 +1135,13 @@
                         </button>
                     </div>
                 </div>
-                <div id="predictionHistory" class="space-y-3 max-h-[400px] overflow-y-auto pr-1 text-sm"></div>
+                <div id="predictionHistory" class="space-y-3 max-h-[400px] overflow-y-auto pr-1 text-sm">
+                    <div class="text-center text-gray-500 p-4">
+                        <i class="fas fa-chart-line text-2xl text-gray-400 mb-2"></i>
+                        <p>Aucune donnée disponible</p>
+                        <p class="text-xs mt-1">L'historique s'affichera ici après vos premières prédictions</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -611,15 +1166,26 @@
     
     // Initialisation au chargement
     document.addEventListener('DOMContentLoaded', () => {
-        updatePredictionHistory();
-        updateStatistics();
-        analyzeHistoricalData();
+        // Attendre que Firebase soit initialisé
+        setTimeout(() => {
+            if (window.isLicenseValid) {
+                updatePredictionHistory();
+                updateStatistics();
+                analyzeHistoricalData();
+            }
+        }, 1000);
     });
 
     // ================= FONCTIONS PRINCIPALES MODIFIÉES POUR LE BACKEND =================
     
     async function fetchLatestCoefficient() {
         try {
+            // Vérifier la licence
+            if (!window.isLicenseValid) {
+                stopAutoFetch();
+                return;
+            }
+            
             console.log('Récupération coefficient depuis le backend...');
             
             const response = await fetch(`${BACKEND_URL}/api/live-coefficient`, {
@@ -677,6 +1243,12 @@
     }
     
     async function predictAutoOdds(autoTriggered = false) {
+        // Vérifier la licence
+        if (!window.isLicenseValid) {
+            stopAutoFetch();
+            return;
+        }
+
         const settings = JSON.parse(localStorage.getItem('predictionSettings')) || {
             analysisMode: 'pro',
             excludeExtremes: true,
@@ -765,6 +1337,23 @@
     // ================= FONCTIONS AUXILIAIRES =================
     
     function startAutoFetch() {
+        // Vérifier la licence d'abord
+        if (!window.isLicenseValid) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Licence requise',
+                text: 'Vous devez avoir une licence active pour utiliser le prédicteur',
+                confirmButtonText: 'Acheter une licence',
+                showCancelButton: true,
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'accueil.html';
+                }
+            });
+            return;
+        }
+        
         if (autoFetchInterval) return;
         
         isAutoFetchActive = true;
@@ -1059,6 +1648,18 @@
     
     function updatePredictionHistory() {
         const historyContainer = document.getElementById('predictionHistory');
+        
+        if (predictionHistory.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="text-center text-gray-500 p-4">
+                    <i class="fas fa-chart-line text-2xl text-gray-400 mb-2"></i>
+                    <p>Aucune donnée disponible</p>
+                    <p class="text-xs mt-1">L'historique s'affichera ici après vos premières prédictions</p>
+                </div>
+            `;
+            return;
+        }
+        
         historyContainer.innerHTML = predictionHistory.map((prediction) => {
             const isPendingVerification = pendingVerification.some(p => p.id === prediction.id);
             const pendingInfo = pendingVerification.find(p => p.id === prediction.id);
@@ -1218,6 +1819,23 @@
     }
     
     function openAdvancedSettings() {
+        // Vérifier la licence
+        if (!window.isLicenseValid) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Licence requise',
+                text: 'Vous devez avoir une licence active pour accéder aux paramètres',
+                confirmButtonText: 'Acheter une licence',
+                showCancelButton: true,
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'accueil.html';
+                }
+            });
+            return;
+        }
+        
         const currentSettings = JSON.parse(localStorage.getItem('predictionSettings')) || {
             analysisMode: 'pro',
             excludeExtremes: true,
@@ -1305,6 +1923,17 @@
     }
     
     function analyzeHistoricalData() {
+        // Vérifier la licence
+        if (!window.isLicenseValid) {
+            document.getElementById('intelligentAnalysis').innerHTML = `
+                <div class="text-center text-gray-500 p-3">
+                    <i class="fas fa-lock text-2xl text-gray-400 mb-2"></i>
+                    <p>Activez votre licence pour débloquer l'analyse</p>
+                </div>
+            `;
+            return;
+        }
+        
         const successfulPredictions = predictionHistory.filter(p => p.status === 'success');
         if (successfulPredictions.length === 0) {
             document.getElementById('intelligentAnalysis').innerHTML = `
