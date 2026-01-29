@@ -3,495 +3,643 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Predicteur Pro - Jeu Crash</title>
+    <title>CRASH PREDICTOR</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Import Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { 
+            getFirestore,
+            collection,
+            query,
+            getDocs,
+            where
+        } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+        
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhySV3lXOlCQ8fMIYRlzs0YpMg6MZ_Ixo",
+            authDomain: "gamehub-e45ea.firebaseapp.com",
+            projectId: "gamehub-e45ea",
+            storageBucket: "gamehub-e45ea.firebasestorage.app",
+            messagingSenderId: "609288909968",
+            appId: "1:609288909968:web:45f3716ce6b2d4970d1415"
+        };
+
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Variables globales pour la licence
+        let userLicense = null;
+        let licenseCheckInterval = null;
+        let isLicenseValid = false;
+        let botIntervals = [];
+        
+        // Vérifier l'état d'authentification et la licence
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Vérifier si l'email est vérifié
+                if (!user.emailVerified) {
+                    showLicenseMessage("Email non vérifié", "Veuillez vérifier votre email pour accéder au bot", true);
+                    return;
+                }
+                
+                console.log("Utilisateur connecté:", user.uid);
+                
+                // Vérifier la licence
+                await checkUserLicense(user.uid);
+                
+                // Démarrer la vérification périodique de la licence
+                startLicenseCheck();
+            } else {
+                // Rediriger vers la page de connexion si non connecté
+                showLicenseMessage("Non connecté", "Vous devez être connecté pour utiliser ce bot", true);
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            }
+        });
+
+        // Vérifier la licence de l'utilisateur pour le jeu Crash
+        async function checkUserLicense(userId) {
+            console.log("Vérification de la licence pour l'utilisateur:", userId);
+            
+            try {
+                const userPurchasesRef = collection(db, 'users', userId, 'purchases');
+                
+                // Requête pour les licences 'crash'
+                const q = query(
+                    userPurchasesRef,
+                    where('gameId', '==', 'crash')
+                );
+                
+                console.log("Exécution de la requête Firestore...");
+                const querySnapshot = await getDocs(q);
+                console.log("Résultats trouvés:", querySnapshot.size);
+                
+                if (querySnapshot.empty) {
+                    console.log("Aucune licence trouvée pour 'crash'");
+                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le jeu Crash", true);
+                    isLicenseValid = false;
+                    return;
+                }
+                
+                let activeLicense = null;
+                let latestLicense = null;
+                let now = new Date();
+                
+                // Parcourir tous les résultats
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    console.log("Document trouvé:", data);
+                    
+                    const expirationDate = new Date(data.expirationDate);
+                    const purchaseDate = new Date(data.purchaseDate);
+                    
+                    console.log("Statut:", data.status);
+                    console.log("Date d'expiration:", expirationDate);
+                    console.log("Date d'achat:", purchaseDate);
+                    
+                    // Vérifier si la licence est active ET non expirée
+                    if (data.status === 'active' && expirationDate > now) {
+                        if (!activeLicense || purchaseDate > new Date(activeLicense.purchaseDate)) {
+                            activeLicense = {
+                                id: doc.id,
+                                ...data,
+                                expirationDate: expirationDate,
+                                purchaseDate: purchaseDate,
+                                remainingTime: expirationDate - now
+                            };
+                        }
+                    }
+                    
+                    // Garder la licence la plus récente même si expirée (pour debug)
+                    if (!latestLicense || purchaseDate > new Date(latestLicense.purchaseDate)) {
+                        latestLicense = {
+                            id: doc.id,
+                            ...data,
+                            expirationDate: expirationDate,
+                            purchaseDate: purchaseDate
+                        };
+                    }
+                });
+                
+                if (activeLicense) {
+                    // Licence active trouvée
+                    userLicense = activeLicense;
+                    isLicenseValid = true;
+                    
+                    const remainingHours = Math.floor(userLicense.remainingTime / (1000 * 60 * 60));
+                    const remainingMinutes = Math.floor((userLicense.remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    console.log("Licence active trouvée:", userLicense);
+                    console.log("Temps restant:", remainingHours + "h " + remainingMinutes + "m");
+                    
+                    showLicenseMessage(
+                        "Licence active ✓", 
+                        `Temps restant: ${remainingHours}h ${remainingMinutes}m`, 
+                        false
+                    );
+                    
+                    // Masquer le message après 3 secondes
+                    setTimeout(() => {
+                        hideLicenseMessage();
+                    }, 3000);
+                    
+                } else if (latestLicense) {
+                    // Afficher les détails de la licence trouvée (pour debug)
+                    console.log("Licence trouvée mais inactive ou expirée:", latestLicense);
+                    
+                    const now = new Date();
+                    const expirationDate = new Date(latestLicense.expirationDate);
+                    const isExpired = expirationDate < now;
+                    const isInactive = latestLicense.status !== 'active';
+                    
+                    let message = "Licence ";
+                    if (isInactive) message += "inactive";
+                    if (isExpired) message += isInactive ? " et expirée" : "expirée";
+                    
+                    showLicenseMessage(
+                        message,
+                        `Date d'expiration: ${expirationDate.toLocaleDateString()} ${expirationDate.toLocaleTimeString()}`,
+                        true
+                    );
+                    
+                    isLicenseValid = false;
+                } else {
+                    console.log("Aucune licence valide trouvée");
+                    showLicenseMessage("Licence non valide", "Votre licence n'est pas active ou a expiré", true);
+                    isLicenseValid = false;
+                }
+                
+            } catch (error) {
+                console.error('Erreur lors de la vérification de la licence:', error);
+                console.error('Détails de l\'erreur:', error.message);
+                console.error('Stack trace:', error.stack);
+                
+                // Afficher un message d'erreur détaillé
+                showLicenseMessage(
+                    "Erreur technique", 
+                    "Impossible de vérifier votre licence. Veuillez réessayer.", 
+                    true
+                );
+                isLicenseValid = false;
+            }
+        }
+
+        // Démarrer la vérification périodique de la licence
+        function startLicenseCheck() {
+            if (licenseCheckInterval) {
+                clearInterval(licenseCheckInterval);
+            }
+            
+            // Vérifier toutes les 30 secondes
+            licenseCheckInterval = setInterval(async () => {
+                const user = auth.currentUser;
+                if (user && isLicenseValid) {
+                    await checkUserLicense(user.uid);
+                }
+            }, 30000);
+        }
+
+        // Afficher un message de licence
+        function showLicenseMessage(title, message, isError = false) {
+            const existingMessage = document.getElementById('licenseMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'licenseMessage';
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${isError ? 'rgba(220, 53, 69, 0.95)' : 'rgba(40, 167, 69, 0.95)'};
+                color: white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+                text-align: center;
+                max-width: 90%;
+                backdrop-filter: blur(10px);
+                border: 1px solid ${isError ? 'rgba(220, 53, 69, 0.3)' : 'rgba(40, 167, 69, 0.3)'};
+            `;
+            
+            messageDiv.innerHTML = `
+                <strong style="font-size: 16px;">${title}</strong><br>
+                <span style="font-size: 14px;">${message}</span>
+                ${isError ? '<br><button id="goToStore" style="margin-top: 10px; padding: 8px 16px; background: white; color: #dc3545; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Acheter une licence</button>' : ''}
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            if (isError) {
+                const goToStoreBtn = document.getElementById('goToStore');
+                if (goToStoreBtn) {
+                    goToStoreBtn.addEventListener('click', () => {
+                        window.location.href = 'accueil.html';
+                    });
+                }
+                
+                // Rediriger automatiquement après 5 secondes si licence invalide
+                setTimeout(() => {
+                    if (!isLicenseValid) {
+                        window.location.href = 'accueil.html';
+                    }
+                }, 5000);
+            }
+        }
+
+        // Masquer le message de licence
+        function hideLicenseMessage() {
+            const messageDiv = document.getElementById('licenseMessage');
+            if (messageDiv) {
+                messageDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }
+        }
+
+        // Arrêter le bot si licence expirée
+        function stopBotIfLicenseExpired() {
+            if (!isLicenseValid) {
+                console.log("Licence expirée - arrêt des opérations");
+                
+                // Arrêter tous les intervalles du bot
+                botIntervals.forEach(interval => {
+                    clearInterval(interval);
+                });
+                botIntervals = [];
+                
+                // Désactiver le bot
+                window.isPredictionActive = false;
+                
+                // Afficher un message d'arrêt
+                const statusIndicator = document.getElementById('statusIndicator');
+                if (statusIndicator) {
+                    statusIndicator.innerHTML = `<i class="fas fa-stop-circle"></i> Bot arrêté - Licence expirée`;
+                    statusIndicator.style.color = '#dc3545';
+                }
+                
+                return true;
+            }
+            return false;
+        }
+
+        // Fonction pour vérifier la licence avant chaque opération
+        window.checkLicenseBeforeOperation = function() {
+            if (!isLicenseValid) {
+                console.log("Licence invalide - arrêt de l'opération");
+                stopBotIfLicenseExpired();
+                return false;
+            }
+            return true;
+        };
+    </script>
     <style>
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: .5; }
-    }
-    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-
-    @keyframes bounce {
-        0%, 100% { transform: translateY(-25%); }
-        50% { transform: translateY(0); }
-    }
-    .animate-bounce { animation: bounce 1s infinite; }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.8); }
-        to { opacity: 1; transform: scale(1); }
-    }
-    
-    .countdown-container {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: linear-gradient(145deg, #f3f4f6, #ffffff);
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .coefficient-badge {
-        display: inline-block;
-        background: linear-gradient(145deg, #3B82F6, #1E40AF);
-        color: white;
-        border-radius: 9999px;
-        padding: 0.25rem 0.75rem;
-        font-size: 0.875rem;
-        margin: 0.25rem;
-        animation: fadeIn 0.3s ease-out;
-    }
-    
-    .auto-fetch-container {
-        background: linear-gradient(145deg, #f0f4f8, #def1ff);
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    
-    .verification-status {
-        padding: 0.5rem;
-        border-radius: 8px;
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-        text-align: center;
-    }
-    
-    .verification-in-progress {
-        background-color: #fffbeb;
-        color: #854d0e;
-        border: 1px solid #fde68a;
-    }
-    
-    .verification-success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
-    }
-    
-    .verification-failed {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border: 1px solid #fca5a5;
-    }
-    
-    .round-indicator {
-        display: inline-block;
-        background: linear-gradient(145deg, #1d4ed8, #3b82f6);
-        color: white;
-        border-radius: 8px;
-        padding: 0.3rem 0.8rem;
-        font-weight: bold;
-        font-size: 0.9rem;
-        margin: 0.1rem;
-    }
-    
-    .history-item {
-        transition: all 0.3s ease;
-    }
-    
-    .history-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .stats-card {
-        background: linear-gradient(145deg, #ffffff, #f9fafb);
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        padding: 1rem;
-    }
-    
-    .robot-header {
-        background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-        color: white;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .feature-card {
-        background: linear-gradient(145deg, #f0f9ff, #e0f7fa);
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        border: 1px solid #bae6fd;
-    }
-    
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
-    
-    .floating {
-        animation: float 3s ease-in-out infinite;
-    }
-    
-    @keyframes glow {
-        0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
-        100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-    }
-    
-    .glowing {
-        animation: glow 2s infinite;
-    }
-    
-    .confidence-level {
-        height: 10px;
-        border-radius: 5px;
-        background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
-    }
-    
-    .confidence-fill {
-        height: 100%;
-        border-radius: 5px;
-        background: #3b82f6;
-        transition: width 1s ease-in-out;
-    }
-    
-    .trend-indicator {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: bold;
-    }
-    
-    .trend-up {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-    
-    .trend-down {
-        background-color: #fee2e2;
-        color: #b91c1c;
-    }
-    
-    .trend-stable {
-        background-color: #dbeafe;
-        color: #1d4ed8;
-    }
-    
-    .pattern-indicator {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        margin-left: 5px;
-    }
-    
-    .pattern-bullish {
-        background-color: #dcfce7;
-        color: #166534;
-        border-left: 3px solid #10b981;
-    }
-    
-    .pattern-bearish {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border-left: 3px solid #ef4444;
-    }
-    
-    .pattern-neutral {
-        background-color: #dbeafe;
-        color: #1d4ed8;
-        border-left: 3px solid #3b82f6;
-    }
-    
-    .duplicate-warning {
-        background-color: #fffbeb;
-        color: #854d0e;
-        border: 1px solid #fde68a;
-        padding: 8px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        text-align: center;
-        margin-top: 10px;
-        animation: fadeIn 0.5s ease-out;
-    }
-    
-    body {
-        background: linear-gradient(135deg, #f0f9ff, #e6f7ff);
-        min-height: 100vh;
-    }
-    
-    .dashboard-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        overflow: hidden;
-        transition: transform 0.3s ease;
-        padding: 1rem;
-    }
-    
-    .dashboard-card:hover {
-        transform: translateY(-3px);
-    }
-    
-    .gradient-btn {
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-    }
-    
-    .gradient-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25);
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .status-pending {
-        background: #fffbeb;
-        color: #d97706;
-    }
-    
-    .status-success {
-        background: #dcfce7;
-        color: #166534;
-    }
-    
-    .status-failed {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-    
-    .validation-container {
-        margin-top: 1.2rem;
-        padding: 1rem;
-        background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
-        border-radius: 10px;
-        border: 1px solid #bae6fd;
-    }
-    
-    .validation-status {
-        padding: 0.6rem;
-        border-radius: 6px;
-        margin-top: 0.4rem;
-        font-size: 0.85rem;
-        text-align: center;
-        font-weight: 500;
-    }
-    
-    .validation-pending {
-        background-color: #fffbeb;
-        color: #854d0e;
-        border: 1px solid #fde68a;
-    }
-    
-    .validation-success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
-    }
-    
-    .validation-failed {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        border: 1px solid #fca5a5;
-    }
-    
-    .advanced-input {
-        position: relative;
-    }
-    
-    .advanced-input .tooltip {
-        visibility: hidden;
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.3s;
-        z-index: 10;
-    }
-    
-    .advanced-input:hover .tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-    
-    .custom-button {
-        transition: all 0.3s ease;
-    }
-    
-    .custom-button:hover {
-        transform: translateY(-2px);
-    }
-    
-    .stats-detail {
-        font-size: 0.75rem;
-        color: #666;
-        margin-top: 0.25rem;
-    }
-    
-    .mode-badge {
-        font-size: 0.65rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background-color: #e2e8f0;
-        color: #4a5568;
-        margin-top: 2px;
-        display: inline-block;
-    }
-    
-    .prediction-accuracy {
-        font-size: 0.75rem;
-        color: #4B5563;
-        background-color: #F3F4F6;
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
-        display: inline-block;
-        margin-top: 0.25rem;
-    }
-    
-    .analysis-card {
-        transition: all 0.3s ease;
-    }
-    
-    .analysis-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .round-notification {
-        background: linear-gradient(145deg, #3b82f6, #1d4ed8);
-        color: white;
-        padding: 12px;
-        border-radius: 10px;
-        text-align: center;
-        margin-top: 15px;
-        font-weight: 500;
-        font-size: 0.95rem;
-        animation: fadeIn 0.5s ease-out;
-    }
-    
-    .margin-info {
-        background: linear-gradient(145deg, #f59e0b, #fbbf24);
-        color: #854d0e;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 10px;
-        font-size: 0.85rem;
-        text-align: center;
-        font-weight: 500;
-    }
-    
-    @media (max-width: 768px) {
-        .container {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-            max-width: 100%;
+        /* Thème de couleur du jeu Crash */
+        :root {
+            --primary-color: #ff6b00;
+            --primary-dark: #e55a00;
+            --success-color: #ffcc00;
+            --text-color: #ffffff;
+            --bg-color: #1a1200;
+            --accent-color: #ff8c00;
+            --warning-color: #ffaa00;
+            --info-color: #ff9900;
+            --wait-color: #ff7700;
+            --validation-color: #ff5500;
+            --state-check-color: #ffff00;
         }
         
-        .robot-header {
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
+        /* ANIMATIONS POUR MESSAGES DE LICENCE */
+        @keyframes slideIn {
+            from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
         }
         
-        .robot-header h1 {
-            font-size: 1.5rem;
+        @keyframes slideOut {
+            from { transform: translateX(-50%) translateY(0); opacity: 1; }
+            to { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+        }
+        
+        /* STYLES GÉNÉRAUX */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 50%, #2a1f00 0%, #1a1200 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .dashboard-card {
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
+            background: rgba(42, 31, 0, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            padding: 1rem;
+            border: 1px solid rgba(255, 107, 0, 0.3);
         }
         
-        .grid-cols-1 {
-            gap: 0.75rem;
-        }
-        
-        .grid-cols-1.md\:grid-cols-2 {
-            gap: 0.75rem;
-        }
-        
-        .feature-card {
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stats-card {
-            padding: 0.75rem;
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(255, 107, 0, 0.2);
         }
         
         .gradient-btn {
-            padding: 8px 16px;
-            font-size: 0.85rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 107, 0, 0.4);
+        }
+        
+        .coefficient-badge {
+            display: inline-block;
+            background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            margin: 0.25rem;
+            animation: fadeIn 0.3s ease-out;
         }
         
         .auto-fetch-container {
-            padding: 12px;
+            background: rgba(255, 107, 0, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 107, 0, 0.2);
         }
         
-        footer {
-            padding: 1rem 0;
-        }
-        
-        footer .grid {
-            gap: 1.5rem;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .container {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-        
-        .robot-header h1 {
-            font-size: 1.3rem;
-        }
-        
-        .dashboard-card {
-            padding: 0.5rem;
-        }
-        
-        .gradient-btn {
-            font-size: 0.8rem;
-            padding: 6px 12px;
+        .stats-card {
+            background: rgba(42, 31, 0, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 1rem;
+            border: 1px solid rgba(255, 107, 0, 0.3);
         }
         
         .feature-card {
-            padding: 0.5rem;
+            background: rgba(255, 107, 0, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid rgba(255, 107, 0, 0.3);
         }
-    }
+        
+        .validation-container {
+            margin-top: 1.2rem;
+            padding: 1rem;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+        
+        .validation-status {
+            padding: 0.6rem;
+            border-radius: 6px;
+            margin-top: 0.4rem;
+            font-size: 0.85rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .validation-pending {
+            background-color: rgba(255, 119, 0, 0.2);
+            color: var(--wait-color);
+            border: 1px solid rgba(255, 119, 0, 0.3);
+        }
+        
+        .validation-success {
+            background-color: rgba(255, 204, 0, 0.2);
+            color: var(--success-color);
+            border: 1px solid rgba(255, 204, 0, 0.3);
+        }
+        
+        .validation-failed {
+            background-color: rgba(255, 85, 0, 0.2);
+            color: var(--validation-color);
+            border: 1px solid rgba(255, 85, 0, 0.3);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: rgba(255, 119, 0, 0.2);
+            color: var(--wait-color);
+        }
+        
+        .status-success {
+            background: rgba(255, 204, 0, 0.2);
+            color: var(--success-color);
+        }
+        
+        .status-failed {
+            background: rgba(255, 85, 0, 0.2);
+            color: var(--validation-color);
+        }
+        
+        .history-item {
+            background: rgba(42, 31, 0, 0.7);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .history-item:hover {
+            background: rgba(255, 107, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .confidence-level {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, var(--validation-color), var(--warning-color), var(--success-color));
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            border-radius: 5px;
+            background: var(--primary-color);
+            transition: width 1s ease-in-out;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .trend-up {
+            background-color: rgba(255, 204, 0, 0.2);
+            color: var(--success-color);
+        }
+        
+        .trend-down {
+            background-color: rgba(255, 85, 0, 0.2);
+            color: var(--validation-color);
+        }
+        
+        .trend-stable {
+            background-color: rgba(255, 153, 0, 0.2);
+            color: var(--info-color);
+        }
+        
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 204, 0, 0.3);
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(255, 107, 0, 0.7);
+            background: linear-gradient(to right, #ffcc00, #ff6b00, #ffcc00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .license-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .license-indicator.valid {
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+        
+        .license-indicator.expired {
+            border-color: rgba(220, 53, 69, 0.3);
+            background: rgba(220, 53, 69, 0.8);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+                max-width: 100%;
+            }
+            
+            .main-header {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .dashboard-card {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .gradient-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .main-title {
+                font-size: 1.8rem;
+            }
+            
+            .dashboard-card {
+                padding: 0.5rem;
+            }
+            
+            .gradient-btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
 
 <!-- Interface principale -->
 <div class="container mx-auto px-2 py-4" id="mainApp">
-    <div class="robot-header text-center">
-        <h1 class="text-3xl font-bold flex items-center justify-center flex-wrap">
-            <i class="fas fa-robot mr-2 floating"></i>
-            🤖 Predicteur Pro - CRASH
-            <span class="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">Backend Connecté</span>
-        </h1>
-        <p class="mt-1 text-blue-100 text-sm">Coefficients récupérés en direct depuis le serveur sécurisé</p>
+    <!-- En-tête principal -->
+    <div class="main-header">
+        <h1 class="main-title">CRASH PREDICTOR</h1>
+        <p class="text-yellow-200 text-sm">Analyse prédictive automatisée en temps réel</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -501,17 +649,17 @@
             <div class="dashboard-card">
                 <div class="auto-fetch-container">
                     <div class="auto-fetch-header flex justify-between items-center">
-                        <div class="auto-fetch-title font-bold text-blue-800 text-sm">
+                        <div class="auto-fetch-title font-bold text-yellow-300 text-sm">
                             <i class="fas fa-sync-alt mr-2"></i> Récupération Automatique
                         </div>
-                        <div class="auto-fetch-status text-gray-700 text-sm" id="autoFetchStatus">
+                        <div class="auto-fetch-status text-gray-300 text-sm" id="autoFetchStatus">
                             <span class="auto-fetch-dot bg-red-500 rounded-full w-2 h-2 inline-block mr-1"></span>
                             <span>Inactif</span>
                         </div>
                     </div>
                     
-                    <div class="coefficients-display mt-3 bg-white rounded-lg p-3" id="coefficientsDisplay">
-                        <p class="text-center text-gray-500 text-sm">Les coefficients apparaîtront ici</p>
+                    <div class="coefficients-display mt-3 bg-black/30 rounded-lg p-3" id="coefficientsDisplay">
+                        <p class="text-center text-gray-400 text-sm">Les coefficients apparaîtront ici</p>
                     </div>
                     
                     <div class="flex gap-3 mt-3 flex-wrap">
@@ -527,46 +675,7 @@
                     </div>
                 </div>
                 
-                <!-- Section Analyse Manuelle -->
-                <div class="mt-4 dashboard-card">
-                    <h3 class="text-lg font-bold text-gray-800 mb-3">
-                        <i class="fas fa-edit mr-2"></i>
-                        Analyse Manuelle
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="advanced-input">
-                            <label class="block text-gray-700 mb-2 font-semibold text-sm">Côtes (min. 5, séparées par des virgules)</label>
-                            <input 
-                                type="text" 
-                                id="manualOddsInput" 
-                                placeholder="Ex: 1.50, 1.75, 2.00, 1.90, 1.65" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
-                            >
-                            <div class="tooltip">Entrez au moins 5 côtes séparées par des virgules</div>
-                        </div>
-                        <div class="advanced-input">
-                            <label class="block text-gray-700 mb-2 font-semibold text-sm">Mise (optionnelle)</label>
-                            <input 
-                                type="number" 
-                                id="manualBetAmount" 
-                                placeholder="Montant à miser" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
-                                min="0"
-                                step="0.01"
-                            >
-                            <div class="tooltip">Entrez votre mise pour calculer les gains potentiels</div>
-                        </div>
-                    </div>
-                    <button 
-                        onclick="predictManualOdds()" 
-                        class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg hover:opacity-90 transition font-semibold text-sm"
-                    >
-                        <i class="fas fa-calculator mr-2"></i>
-                        Analyser les Côtes
-                    </button>
-                </div>
-                
-                <div id="result" class="bg-gray-50 rounded-lg p-4 mt-4 border border-gray-200">
+                <div id="result" class="bg-black/20 rounded-lg p-4 mt-4 border border-orange-900/50">
                     <!-- Les résultats des prédictions automatiques apparaîtront ici -->
                 </div>
             </div>
@@ -575,28 +684,28 @@
         <!-- Colonne de droite -->
         <div>
             <div class="stats-card mb-4">
-                <h3 class="text-lg font-bold text-gray-800 mb-3">
-                    <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
+                <h3 class="text-lg font-bold text-yellow-300 mb-3">
+                    <i class="fas fa-chart-pie text-yellow-400 mr-2"></i>
                     Statistiques Globales
                 </h3>
                 <div id="statsContainer" class="text-center">
-                    <p id="totalPredictions" class="text-2xl font-bold text-blue-600">0</p>
-                    <p id="predictionAccuracy" class="text-xl font-bold text-green-600 mt-1">0%</p>
+                    <p id="totalPredictions" class="text-2xl font-bold text-yellow-400">0</p>
+                    <p id="predictionAccuracy" class="text-xl font-bold text-green-400 mt-1">0%</p>
                     <div class="grid grid-cols-3 gap-3 mt-3">
-                        <div class="bg-green-100 p-2 rounded-lg">
-                            <p class="text-lg font-bold text-green-800">✅</p>
-                            <p class="text-xs text-gray-700">Validées</p>
-                            <p id="successCount" class="font-bold">0</p>
+                        <div class="bg-green-900/30 p-2 rounded-lg border border-green-800/50">
+                            <p class="text-lg font-bold text-green-400">✅</p>
+                            <p class="text-xs text-gray-300">Validées</p>
+                            <p id="successCount" class="font-bold text-white">0</p>
                         </div>
-                        <div class="bg-red-100 p-2 rounded-lg">
-                            <p class="text-lg font-bold text-red-800">❌</p>
-                            <p class="text-xs text-gray-700">Échouées</p>
-                            <p id="failedCount" class="font-bold">0</p>
+                        <div class="bg-red-900/30 p-2 rounded-lg border border-red-800/50">
+                            <p class="text-lg font-bold text-red-400">❌</p>
+                            <p class="text-xs text-gray-300">Échouées</p>
+                            <p id="failedCount" class="font-bold text-white">0</p>
                         </div>
-                        <div class="bg-yellow-100 p-2 rounded-lg">
-                            <p class="text-lg font-bold text-yellow-800">⏳</p>
-                            <p class="text-xs text-gray-700">En attente</p>
-                            <p id="pendingCount" class="font-bold">0</p>
+                        <div class="bg-yellow-900/30 p-2 rounded-lg border border-yellow-800/50">
+                            <p class="text-lg font-bold text-yellow-400">⏳</p>
+                            <p class="text-xs text-gray-300">En attente</p>
+                            <p id="pendingCount" class="font-bold text-white">0</p>
                         </div>
                     </div>
                 </div>
@@ -604,8 +713,8 @@
             
             <div class="stats-card mb-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-brain text-indigo-500 mr-2"></i>
+                    <h3 class="text-lg font-bold text-yellow-300">
+                        <i class="fas fa-brain text-yellow-400 mr-2"></i>
                         Analyse Intelligence
                     </h3>
                     <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition">
@@ -613,7 +722,7 @@
                     </button>
                 </div>
                 <div id="intelligentAnalysis" class="text-xs space-y-2">
-                    <div class="animate-pulse text-gray-500">
+                    <div class="text-gray-400">
                         Cliquez sur Actualiser pour analyser les données
                     </div>
                 </div>
@@ -621,8 +730,8 @@
             
             <div class="dashboard-card">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-history text-blue-500 mr-2"></i>
+                    <h3 class="text-lg font-bold text-yellow-300">
+                        <i class="fas fa-history text-yellow-400 mr-2"></i>
                         Historique des Prédictions
                     </h3>
                     <button id="toggleHistory" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
@@ -634,73 +743,12 @@
         </div>
     </div>
     
-    <!-- Section Fonctionnalités -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-        <div class="feature-card">
-            <div class="text-blue-500 text-2xl mb-2">
-                <i class="fas fa-bolt"></i>
-            </div>
-            <h4 class="font-bold text-base text-gray-800 mb-1">Backend Sécurisé</h4>
-            <p class="text-gray-600 text-sm">Les clés API sensibles sont sécurisées côté serveur. Ton frontend est protégé.</p>
-        </div>
-        
-        <div class="feature-card">
-            <div class="text-green-500 text-2xl mb-2">
-                <i class="fas fa-robot"></i>
-            </div>
-            <h4 class="font-bold text-base text-gray-800 mb-1">IA Avancée</h4>
-            <p class="text-gray-600 text-sm">Même logique de prédiction intelligente, exécutée sur ton serveur dédié.</p>
-        </div>
-        
-        <div class="feature-card">
-            <div class="text-purple-500 text-2xl mb-2">
-                <i class="fas fa-server"></i>
-            </div>
-            <h4 class="font-bold text-base text-gray-800 mb-1">Serveur Dédié</h4>
-            <p class="text-gray-600 text-sm">Connecté à : <strong>onewin-predictor-backend.onrender.com</strong></p>
-        </div>
+    <!-- Indicateur de licence -->
+    <div id="licenseIndicator" class="license-indicator" style="display: none;">
+        <i class="fas fa-key"></i>
+        <span id="licenseStatusText">Vérification...</span>
     </div>
 </div>
-
-<footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-8 mt-8">
-    <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-                <h3 class="text-lg font-bold mb-3">Predicteur Pro - CRASH</h3>
-                <p class="text-gray-300 text-sm">Version backend sécurisé. Clés API protégées.</p>
-            </div>
-            
-            <div>
-                <h4 class="font-bold text-base mb-3">Serveur Backend</h4>
-                <ul class="space-y-1 text-gray-300 text-sm">
-                    <li><i class="fas fa-server mr-2"></i> <strong>Statut:</strong> <span class="text-green-400">En ligne</span></li>
-                    <li><i class="fas fa-link mr-2"></i> <strong>URL:</strong> onewin-predictor-backend.onrender.com</li>
-                    <li><i class="fas fa-shield-alt mr-2"></i> <strong>Sécurité:</strong> Clés côté serveur</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 class="font-bold text-base mb-3">Support</h4>
-                <ul class="space-y-1 text-gray-300 text-sm">
-                    <li><i class="fas fa-phone mr-2"></i> +225 05 06 21 00 51</li>
-                    <li><i class="fas fa-envelope mr-2"></i> dieudonne230@gmail.com</li>
-                    <li><i class="fab fa-whatsapp mr-2"></i> WhatsApp Support</li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="font-bold text-base mb-3">Déploiement</h4>
-                <p class="text-gray-300 mb-3 text-sm">Ce frontend doit être déployé sur :</p>
-                <div class="bg-gray-700 p-2 rounded text-sm">
-                    <code>https://gamehub-56km.onrender.com</code>
-                </div>
-            </div>
-        </div>
-         <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400 text-sm">
-            <p>&copy; 2026 Predicteur Pro - Backend Sécurisé. Tous droits réservés.</p>
-            <p class="mt-1">Connecté au serveur: <span class="text-green-300">onewin-predictor-backend.onrender.com</span></p>
-        </div>
-    </div>
-</footer>
 
 <script>
     // ================= CONFIGURATION DU BACKEND =================
@@ -724,13 +772,20 @@
         updatePredictionHistory();
         updateStatistics();
         analyzeHistoricalData();
-        showUserGuide();
+        
+        // Mettre à jour l'indicateur de licence
+        updateLicenseIndicator();
     });
 
     // ================= FONCTIONS PRINCIPALES MODIFIÉES POUR LE BACKEND =================
     
     async function fetchLatestCoefficient() {
         try {
+            // Vérifier la licence avant l'opération
+            if (!window.checkLicenseBeforeOperation || !window.checkLicenseBeforeOperation()) {
+                return;
+            }
+            
             console.log('Récupération coefficient depuis le backend...');
             
             const response = await fetch(`${BACKEND_URL}/api/live-coefficient`, {
@@ -788,6 +843,11 @@
     }
     
     async function predictAutoOdds(autoTriggered = false) {
+        // Vérifier la licence avant l'opération
+        if (!window.checkLicenseBeforeOperation || !window.checkLicenseBeforeOperation()) {
+            return;
+        }
+
         const settings = JSON.parse(localStorage.getItem('predictionSettings')) || {
             analysisMode: 'pro',
             excludeExtremes: true,
@@ -856,10 +916,9 @@
                             <p><strong>Prédiction brute:</strong> ${predictionResult.rawOdds}</p>
                             <p><strong>Prédiction finale (avec marge ${predictionResult.marginPercentage}%):</strong> ${predictionResult.finalOdds}</p>
                             <p><strong>Confiance:</strong> ${predictionResult.confidence}%</p>
-                            <div class="mt-2 p-2 bg-blue-50 rounded-lg">
-                                <p class="font-semibold text-blue-700">📢 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
+                            <div class="mt-2 p-2 bg-orange-50 rounded-lg">
+                                <p class="font-semibold text-orange-700">📢 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">Source: Backend sécurisé</p>
                         </div>
                     `,
                     toast: true,
@@ -871,108 +930,6 @@
         } catch (error) {
             console.error('Erreur lors de la prédiction:', error);
             showBackendError('Erreur lors de la prédiction automatique');
-        }
-    }
-    
-    async function predictManualOdds() {
-        const settings = JSON.parse(localStorage.getItem('predictionSettings')) || {
-            analysisMode: 'pro',
-            excludeExtremes: true,
-            trendAnalysis: false,
-            volatilityThreshold: 0.15
-        };
-
-        const oddsInput = document.getElementById('manualOddsInput').value;
-        const betAmount = parseFloat(document.getElementById('manualBetAmount').value) || 0;
-        
-        let oddsArray = oddsInput.split(',')
-            .map(odd => parseFloat(odd.trim()))
-            .filter(odd => !isNaN(odd) && odd > 1);
-
-        if (oddsArray.length < 5) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Données Insuffisantes',
-                text: 'Veuillez entrer au moins 5 côtes valides',
-                confirmButtonColor: '#3B82F6'
-            });
-            return;
-        }
-
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/predict`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    game: CURRENT_GAME,
-                    coefficients: oddsArray,
-                    settings: settings
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur backend: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.success) {
-                const predictionResult = {
-                    ...data.prediction,
-                    id: Date.now(),
-                    date: new Date().toLocaleString(),
-                    type: 'manuelle',
-                    source: 'backend-manual',
-                    status: 'pending',
-                    originalOdds: oddsArray.join(', '),
-                    round: null,
-                    verificationStatus: 'pending',
-                    verifiedRound: null
-                };
-                
-                if (betAmount > 0) {
-                    predictionResult.potentialWin = (betAmount * parseFloat(predictionResult.finalOdds)).toFixed(2);
-                } else {
-                    predictionResult.potentialWin = 'N/A';
-                }
-
-                predictionHistory.unshift(predictionResult);
-                localStorage.setItem('predictionHistory', JSON.stringify(predictionHistory));
-
-                updatePredictionDisplay(predictionResult);
-                updatePredictionHistory();
-                updateStatistics();
-                analyzeHistoricalData();
-
-                document.getElementById('manualOddsInput').value = '';
-                document.getElementById('manualBetAmount').value = '';
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Prédiction Générée!',
-                    html: `
-                        <div class="text-left">
-                            <p><strong>Prédiction brute:</strong> ${predictionResult.rawOdds}</p>
-                            <p><strong>Prédiction finale (avec marge ${predictionResult.marginPercentage}%):</strong> ${predictionResult.finalOdds}</p>
-                            <p class="text-sm text-gray-600">Probabilité: ${predictionResult.probabilities[0]}%</p>
-                            <p class="text-sm text-gray-600">Mode: ${settings.analysisMode}</p>
-                            <div class="mt-2 p-2 bg-blue-50 rounded-lg">
-                                <p class="font-semibold text-blue-700">📢 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Source: Backend sécurisé</p>
-                        </div>
-                    `,
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 4000
-                });
-            }
-        } catch (error) {
-            console.error('Erreur lors de la prédiction manuelle:', error);
-            showBackendError('Erreur lors de la prédiction manuelle');
         }
     }
     
@@ -1003,48 +960,13 @@
             marginAmount: (rawPrediction - finalPrediction).toFixed(2)
         };
     }
-
-    function showUserGuide() {
-        Swal.fire({
-            title: '🚀 Nouvelle Version - Backend Sécurisé',
-            html: `
-                <div class="text-left space-y-4">
-                    <div class="bg-green-50 p-3 rounded-lg">
-                        <h3 class="text-lg font-bold text-green-600">✅ Backend Connecté avec Succès</h3>
-                        <p class="text-sm">Ton frontend est maintenant connecté au serveur sécurisé :</p>
-                        <p class="font-bold text-sm mt-1">${BACKEND_URL}</p>
-                        <p class="text-xs mt-2">Les clés API sensibles sont protégées côté serveur.</p>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-bold text-blue-600">📘 Système de Marge Appliquée</h3>
-                        <div class="bg-blue-50 p-3 rounded-lg text-sm">
-                            <p class="font-bold mb-2">Règles de retrait de marge :</p>
-                            <ul class="list-disc pl-5">
-                                <li>Si prédiction < 2.00 → Marge de 15%</li>
-                                <li>Si 2.00 ≤ prédiction < 3.00 → Marge de 25%</li>
-                                <li>Si prédiction ≥ 3.00 → Marge de 35%</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-bold text-red-600">🚨 Important - Déploiement</h3>
-                        <div class="bg-red-50 p-3 rounded-lg text-sm">
-                            <p class="font-bold mb-2">Ce frontend doit être déployé sur :</p>
-                            <p class="font-mono bg-gray-800 text-white p-2 rounded">https://gamehub-56km.onrender.com</p>
-                            <p class="mt-2 text-xs">Le backend n'accepte que les requêtes provenant de ce domaine.</p>
-                        </div>
-                    </div>
-                </div>
-            `,
-            width: '600px',
-            confirmButtonText: 'Compris',
-            confirmButtonColor: '#3B82F6'
-        });
-    }
     
     function startAutoFetch() {
+        // Vérifier la licence avant l'opération
+        if (!window.checkLicenseBeforeOperation || !window.checkLicenseBeforeOperation()) {
+            return;
+        }
+        
         if (autoFetchInterval) return;
         
         isAutoFetchActive = true;
@@ -1098,7 +1020,7 @@
         const displayElement = document.getElementById('coefficientsDisplay');
         if (!displayElement.querySelector('.duplicate-warning')) {
             const warningElement = document.createElement('div');
-            warningElement.className = 'duplicate-warning';
+            warningElement.className = 'bg-yellow-900/50 text-yellow-200 p-2 rounded-lg text-sm text-center mt-2';
             warningElement.innerHTML = `
                 <i class="fas fa-exclamation-triangle mr-2"></i>
                 Coefficient identique détecté (ignoré)
@@ -1188,7 +1110,7 @@
         const displayElement = document.getElementById('coefficientsDisplay');
         
         if (autoCoefficients.length === 0) {
-            displayElement.innerHTML = '<p class="text-center text-gray-500 text-sm">Les coefficients apparaîtront ici</p>';
+            displayElement.innerHTML = '<p class="text-center text-gray-400 text-sm">Les coefficients apparaîtront ici</p>';
             return;
         }
         
@@ -1198,7 +1120,7 @@
                     <div class="coefficient-badge text-xs">${coef}</div>
                 `).join('')}
             </div>
-            <div class="text-center mt-2 text-xs text-gray-600">
+            <div class="text-center mt-2 text-xs text-gray-400">
                 ${5 - autoCoefficients.length} coefficient(s) restant(s) avant prédiction
             </div>
         `;
@@ -1216,24 +1138,15 @@
             trendIndicator = '<span class="trend-indicator trend-stable"><i class="fas fa-arrows-alt-h mr-1"></i> Stable</span>';
         }
         
-        let patternIndicator = '';
-        if (prediction.pattern === 'bullish') {
-            patternIndicator = '<span class="pattern-indicator pattern-bullish">Tendance haussière</span>';
-        } else if (prediction.pattern === 'bearish') {
-            patternIndicator = '<span class="pattern-indicator pattern-bearish">Tendance baissière</span>';
-        } else {
-            patternIndicator = '<span class="pattern-indicator pattern-neutral">Pas de tendance claire</span>';
-        }
-        
         roundHTML = `
-            <div class="round-notification">
+            <div class="bg-orange-900/30 text-yellow-200 p-3 rounded-lg mt-3 text-sm text-center border border-orange-800/50">
                 <i class="fas fa-info-circle mr-2"></i>
                 La prédiction finale de <strong>${prediction.finalOdds}</strong> devrait apparaître dans l'un des 3 rounds suivants (1, 2 ou 3)
             </div>
         `;
         
         const marginInfo = `
-            <div class="margin-info">
+            <div class="bg-yellow-900/30 text-yellow-200 p-2 rounded-lg mt-3 text-sm text-center border border-yellow-800/50">
                 <i class="fas fa-percentage mr-2"></i>
                 Marge de ${prediction.marginPercentage}% appliquée : ${prediction.rawOdds} → ${prediction.finalOdds} (retrait de ${prediction.marginAmount})
             </div>
@@ -1250,7 +1163,7 @@
                         <i class="fas fa-sync-alt fa-spin mr-2"></i>
                         Vérification en cours - Round ${currentRound}/3
                     </div>
-                    <p class="text-xs text-center mt-2 text-gray-600">
+                    <p class="text-xs text-center mt-2 text-gray-400">
                         Le système vérifie automatiquement cette prédiction sur les 3 prochains rounds
                     </p>
                 </div>
@@ -1262,7 +1175,7 @@
                         <i class="fas fa-check-circle mr-2"></i>
                         ✅ Validé au Round ${prediction.verifiedRound}
                     </div>
-                    <p class="text-xs text-center mt-2 text-green-600 font-medium">
+                    <p class="text-xs text-center mt-2 text-green-400 font-medium">
                         Cette prédiction a été validée avec succès!
                     </p>
                 </div>
@@ -1274,7 +1187,7 @@
                         <i class="fas fa-times-circle mr-2"></i>
                         ❌ Échoué après 3 rounds
                     </div>
-                    <p class="text-xs text-center mt-2 text-red-600 font-medium">
+                    <p class="text-xs text-center mt-2 text-red-400 font-medium">
                         Cette prédiction n'a pas été validée dans les 3 rounds
                     </p>
                 </div>
@@ -1283,19 +1196,19 @@
         
         document.getElementById('result').innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center p-3 bg-blue-50 rounded-lg">
-                    <span class="text-xs text-gray-600 block mb-1">Prédiction Brute</span>
-                    <p class="text-xl font-bold text-blue-600">${prediction.rawOdds}</p>
+                <div class="text-center p-3 bg-orange-900/20 rounded-lg border border-orange-800/30">
+                    <span class="text-xs text-gray-300 block mb-1">Prédiction Brute</span>
+                    <p class="text-xl font-bold text-yellow-300">${prediction.rawOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-purple-50 rounded-lg">
-                    <span class="text-xs text-gray-600 block mb-1">Prédiction Finale</span>
-                    <p class="text-2xl font-bold text-purple-600">${prediction.finalOdds}</p>
+                <div class="text-center p-3 bg-yellow-900/20 rounded-lg border border-yellow-800/30">
+                    <span class="text-xs text-gray-300 block mb-1">Prédiction Finale</span>
+                    <p class="text-2xl font-bold text-yellow-400">${prediction.finalOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-green-50 rounded-lg">
-                    <span class="text-xs text-gray-600 block mb-1">Probabilité de Réussite</span>
-                    <p class="text-xl font-bold text-green-600">${prediction.probabilities[0]}%</p>
+                <div class="text-center p-3 bg-green-900/20 rounded-lg border border-green-800/30">
+                    <span class="text-xs text-gray-300 block mb-1">Probabilité de Réussite</span>
+                    <p class="text-xl font-bold text-green-400">${prediction.probabilities[0]}%</p>
                 </div>
             </div>
             
@@ -1304,42 +1217,33 @@
             
             <div class="mt-4">
                 <div class="flex justify-between mb-1">
-                    <span class="text-sm font-medium text-gray-700">Score de prédiction</span>
-                    <span class="prediction-score">${prediction.globalScore}</span>
+                    <span class="text-sm font-medium text-gray-300">Score de prédiction</span>
+                    <span class="text-yellow-300">${prediction.globalScore}</span>
                 </div>
             </div>
             
             <div class="mt-3">
                 <div class="flex justify-between mb-1">
-                    <span class="text-sm font-medium text-gray-700">Niveau de confiance</span>
-                    <span class="text-sm font-medium text-gray-700">${prediction.confidence}%</span>
+                    <span class="text-sm font-medium text-gray-300">Niveau de confiance</span>
+                    <span class="text-sm font-medium text-yellow-300">${prediction.confidence}%</span>
                 </div>
-                <div class="confidence-level w-full rounded-full h-2 bg-gray-200">
+                <div class="confidence-level w-full rounded-full h-2 bg-gray-700">
                     <div class="confidence-fill h-2 rounded-full" style="width: ${prediction.confidence}%"></div>
                 </div>
             </div>
             
             <div class="mt-3 flex justify-between items-center flex-wrap">
                 <div class="mb-1">
-                    <span class="text-xs text-gray-700">Tendance: </span>
+                    <span class="text-xs text-gray-300">Tendance: </span>
                     ${trendIndicator}
-                </div>
-                <div>
-                    ${patternIndicator}
                 </div>
             </div>
             
-            <div class="mt-2 text-xs text-gray-600">
+            <div class="mt-2 text-xs text-gray-400">
                 Volatilité: ${prediction.volatility}
             </div>
             
             ${verificationStatus}
-            ${prediction.potentialWin && prediction.potentialWin !== 'N/A' ? `
-                <div class="mt-4 text-center">
-                    <span class="text-sm text-gray-600 block mb-1">Gain Potentiel</span>
-                    <p class="text-2xl font-bold text-purple-600">${prediction.potentialWin} €</p>
-                </div>
-            ` : ''}
         `;
     }
     
@@ -1350,20 +1254,20 @@
             const pendingInfo = pendingVerification.find(p => p.id === prediction.id);
             
             return `
-            <div class="history-item bg-white border border-gray-200 p-3 rounded-lg">
+            <div class="history-item">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="font-semibold text-gray-800 text-sm">${prediction.date}</p>
-                                <p class="text-xs text-gray-600">
+                                <p class="font-semibold text-white text-sm">${prediction.date}</p>
+                                <p class="text-xs text-gray-300">
                                     Prédiction: 
-                                    <span class="font-bold text-purple-600">${prediction.finalOdds}</span> 
-                                    <span class="text-gray-500 text-xs">(Brute: ${prediction.rawOdds})</span>
+                                    <span class="font-bold text-yellow-400">${prediction.finalOdds}</span> 
+                                    <span class="text-gray-400 text-xs">(Brute: ${prediction.rawOdds})</span>
                                     <span class="ml-1 text-xs">(${prediction.probabilities[0]}%)</span>
                                 </p>
-                                <p class="text-xs text-gray-500">${prediction.type === 'automatique' ? '⚡ Auto' : '✍️ Manuel'}</p>
-                                <p class="text-xs text-yellow-600 font-medium">
+                                <p class="text-xs text-gray-400">${prediction.type === 'automatique' ? '⚡ Auto' : '✍️ Manuel'}</p>
+                                <p class="text-xs text-yellow-500 font-medium">
                                     <i class="fas fa-percentage mr-1"></i>Marge: ${prediction.marginPercentage}%
                                 </p>
                             </div>
@@ -1379,29 +1283,12 @@
                         </div>
                         
                         <div class="mt-1 text-xs">
-                            <span class="text-gray-600">Confiance: </span>
-                            <span class="font-semibold">${prediction.confidence}%</span>
+                            <span class="text-gray-400">Confiance: </span>
+                            <span class="font-semibold text-yellow-300">${prediction.confidence}%</span>
                         </div>
                         
-                        ${prediction.type === 'manuelle' && prediction.status === 'pending' ? `
-                            <div class="mt-2 flex gap-2">
-                                <button 
-                                    onclick="updatePredictionStatus('${prediction.id}', 'success')" 
-                                    class="px-2 py-1 bg-green-500 text-white rounded-lg text-xs hover:bg-green-600 transition"
-                                >
-                                    ✓ Validé
-                                </button>
-                                <button 
-                                    onclick="updatePredictionStatus('${prediction.id}', 'failed')" 
-                                    class="px-2 py-1 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition"
-                                >
-                                    ✕ Échoué
-                                </button>
-                            </div>
-                        ` : ''}
-                        
                         ${isPendingVerification ? `
-                            <div class="mt-2 text-xs bg-orange-50 text-orange-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-orange-900/30 text-yellow-300 p-1.5 rounded border border-orange-800/50">
                                 <i class="fas fa-sync-alt fa-spin mr-1"></i>
                                 Vérification en cours: 
                                 <span class="font-bold">Round ${pendingInfo.currentRound}/3</span>
@@ -1409,14 +1296,14 @@
                         ` : ''}
                         
                         ${prediction.verificationStatus === 'success' ? `
-                            <div class="mt-2 text-xs bg-green-50 text-green-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-green-900/30 text-green-300 p-1.5 rounded border border-green-800/50">
                                 <i class="fas fa-check-circle mr-1"></i>
                                 Validé au Round ${prediction.verifiedRound}
                             </div>
                         ` : ''}
                         
                         ${prediction.verificationStatus === 'failed' ? `
-                            <div class="mt-2 text-xs bg-red-50 text-red-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-red-900/30 text-red-300 p-1.5 rounded border border-red-800/50">
                                 <i class="fas fa-times-circle mr-1"></i>
                                 Échoué après 3 rounds
                             </div>
@@ -1594,8 +1481,8 @@
         const successfulPredictions = predictionHistory.filter(p => p.status === 'success');
         if (successfulPredictions.length === 0) {
             document.getElementById('intelligentAnalysis').innerHTML = `
-                <div class="text-center text-gray-500 p-3 text-xs">
-                    <i class="fas fa-database text-2xl text-gray-400 mb-2"></i>
+                <div class="text-center text-gray-400 p-3 text-xs">
+                    <i class="fas fa-database text-2xl text-gray-600 mb-2"></i>
                     <p>Pas encore assez de données pour l'analyse</p>
                 </div>
             `;
@@ -1632,100 +1519,40 @@
         
         const percentageRanges = analyzePercentageRanges(successfulPredictions);
         const roundAnalysis = analyzeRounds(successfulPredictions);
-        const oddsAnalysis = analyzeOddsRanges(successfulPredictions);
 
         document.getElementById('intelligentAnalysis').innerHTML = `
             <div class="space-y-3">
-                <div class="p-2 bg-blue-50 rounded-lg">
-                    <div class="font-bold text-blue-800 mb-1 text-sm">
+                <div class="p-2 bg-orange-900/20 rounded-lg border border-orange-800/30">
+                    <div class="font-bold text-yellow-300 mb-1 text-sm">
                         <i class="fas fa-chart-line mr-1"></i>
                         Performance Moyenne
                     </div>
-                    <p class="text-blue-600 text-xs">
+                    <p class="text-yellow-200 text-xs">
                         Taux de réussite: <span class="font-bold">${((successfulPredictions.length / predictionHistory.length) * 100).toFixed(1)}%</span>
                     </p>
-                    <p class="text-blue-600 text-xs mt-1">
+                    <p class="text-yellow-200 text-xs mt-1">
                         Confiance moyenne des succès: <span class="font-bold">${avgSuccessConfidence}%</span>
                     </p>
                 </div>
                 
-                <div class="p-2 bg-green-50 rounded-lg">
-                    <div class="font-bold text-green-800 mb-1 text-sm">
+                <div class="p-2 bg-green-900/20 rounded-lg border border-green-800/30">
+                    <div class="font-bold text-green-300 mb-1 text-sm">
                         <i class="fas fa-check-circle mr-1"></i>
                         Meilleures Côtes Finales
                     </div>
-                    <p class="text-green-600 text-xs">
+                    <p class="text-green-200 text-xs">
                         Plage optimale: <span class="font-bold">${bestRange}</span>
                     </p>
-                    <div class="mt-1">
-                        <p class="text-xs text-gray-600 mb-1">Répartition des succès (après marge):</p>
-                        <div class="space-y-1">
-                            <div class="flex items-center">
-                                <span class="text-xs w-12">1.0-1.5:</span>
-                                <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['1.0-1.5'] / successfulPredictions.length) * 100}%"></div>
-                                </div>
-                                <span class="text-xs w-6 text-right">${oddsRanges['1.0-1.5']}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-xs w-12">1.5-2.0:</span>
-                                <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['1.5-2.0'] / successfulPredictions.length) * 100}%"></div>
-                                </div>
-                                <span class="text-xs w-6 text-right">${oddsRanges['1.5-2.0']}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-xs w-12">2.0-2.5:</span>
-                                <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['2.0-2.5'] / successfulPredictions.length) * 100}%"></div>
-                                </div>
-                                <span class="text-xs w-6 text-right">${oddsRanges['2.0-2.5']}</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-xs w-12">2.5+:</span>
-                                <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['2.5+'] / successfulPredictions.length) * 100}%"></div>
-                                </div>
-                                <span class="text-xs w-6 text-right">${oddsRanges['2.5+']}</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="p-2 bg-purple-50 rounded-lg">
-                    <div class="font-bold text-purple-800 mb-1 text-sm">
+                <div class="p-2 bg-purple-900/20 rounded-lg border border-purple-800/30">
+                    <div class="font-bold text-purple-300 mb-1 text-sm">
                         <i class="fas fa-history mr-1"></i>
                         Analyse Historique
                     </div>
-                    <p class="text-purple-600 text-xs">
+                    <p class="text-purple-200 text-xs">
                         <span class="font-bold">${successfulPredictions.length}</span> prédictions réussies sur 
                         <span class="font-bold">${predictionHistory.length}</span> au total
-                    </p>
-                </div>
-                
-                <div class="p-2 bg-yellow-50 rounded-lg">
-                    <div class="font-bold text-yellow-800 mb-1 text-sm">
-                        <i class="fas fa-chart-bar mr-1"></i>
-                        Meilleur Intervalle de Probabilité
-                    </div>
-                    <p class="text-yellow-600 text-xs">
-                        ${percentageRanges.bestRange}% (${percentageRanges.bestCount} succès)
-                        <span class="text-xs text-yellow-500">
-                            Taux de réussite: ${percentageRanges.successRate}%
-                        </span>
-                    </p>
-                </div>
-                
-                <div class="p-2 bg-pink-50 rounded-lg">
-                    <div class="font-bold text-pink-800 mb-1 text-sm">
-                        <i class="fas fa-trophy mr-1"></i>
-                        Round le Plus Performant
-                    </div>
-                    <p class="text-pink-600 text-xs">
-                        Round ${roundAnalysis.bestRound} 
-                        <span class="text-xs text-pink-500">
-                            (${roundAnalysis.roundCount} succès sur ${roundAnalysis.totalForRound} prédictions)
-                        </span>
                     </p>
                 </div>
             </div>
@@ -1807,32 +1634,6 @@
         };
     }
 
-    function analyzeOddsRanges(predictions) {
-        const ranges = {};
-        predictions.forEach(pred => {
-            const odds = parseFloat(pred.finalOdds);
-            const rangeStart = Math.floor(odds * 2) / 2;
-            const rangeKey = `${rangeStart.toFixed(1)}-${(rangeStart + 0.5).toFixed(1)}`;
-            
-            ranges[rangeKey] = (ranges[rangeKey] || 0) + 1;
-        });
-
-        let bestRange = '';
-        let maxSuccess = 0;
-
-        Object.entries(ranges).forEach(([range, count]) => {
-            if (count > maxSuccess) {
-                bestRange = range;
-                maxSuccess = count;
-            }
-        });
-
-        return {
-            bestRange,
-            successCount: maxSuccess
-        };
-    }
-
     function toggleHistoryVisibility() {
         const historyContainer = document.getElementById('predictionHistory');
         const toggleButton = document.getElementById('toggleHistory');
@@ -1850,6 +1651,26 @@
             toggleButton.classList.add('bg-green-500');
         }
     }
+    
+    function updateLicenseIndicator() {
+        const indicator = document.getElementById('licenseIndicator');
+        const statusText = document.getElementById('licenseStatusText');
+        
+        if (indicator) {
+            if (window.isLicenseValid) {
+                indicator.style.display = 'flex';
+                indicator.className = 'license-indicator valid';
+                statusText.textContent = 'Licence active';
+            } else {
+                indicator.style.display = 'flex';
+                indicator.className = 'license-indicator expired';
+                statusText.textContent = 'Licence expirée';
+            }
+        }
+    }
+    
+    // Mettre à jour périodiquement l'indicateur de licence
+    setInterval(updateLicenseIndicator, 5000);
 </script>
 </body>
 </html>
