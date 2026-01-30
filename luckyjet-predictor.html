@@ -1148,7 +1148,17 @@
 </div>
 
 <script>
-    // ================= CONFIGURATION DU BACKEND =================
+    // ================= CONFIGURATION =================
+    // Configuration des API des jeux (remplacer par vos valeurs)
+    const GAMES_CONFIG = {
+        luckyjet: {
+            apiURL: "https://luckyjet-gateway-grm-lj.100hp.app/state",
+            sessionId: "YOUR_LUCKYJET_SESSION_ID", // À remplacer
+            customerId: "YOUR_CUSTOMER_ID" // À remplacer
+        }
+    };
+
+    // URL du backend de prédiction
     const BACKEND_URL = 'https://onewin-predictor-backend.onrender.com';
     const CURRENT_GAME = 'luckyjet';
 
@@ -1176,7 +1186,7 @@
         }, 1000);
     });
 
-    // ================= FONCTIONS PRINCIPALES MODIFIÉES POUR LE BACKEND =================
+    // ================= FONCTIONS PRINCIPALES =================
     
     async function fetchLatestCoefficient() {
         try {
@@ -1186,27 +1196,33 @@
                 return;
             }
             
-            console.log('Récupération coefficient depuis le backend...');
+            console.log('Récupération coefficient depuis API directe...');
             
-            const response = await fetch(`${BACKEND_URL}/api/live-coefficient`, {
-                method: 'POST',
+            const gameConfig = GAMES_CONFIG[CURRENT_GAME];
+            if (!gameConfig) {
+                throw new Error(`Configuration manquante pour le jeu: ${CURRENT_GAME}`);
+            }
+            
+            // Récupération directe depuis l'API du jeu
+            const response = await fetch(gameConfig.apiURL, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    game: CURRENT_GAME 
-                })
+                    'customer-id': gameConfig.customerId,
+                    'session-id': gameConfig.sessionId,
+                    'accept': 'application/json'
+                }
             });
             
             if (!response.ok) {
-                throw new Error(`Erreur backend: ${response.status}`);
+                throw new Error(`Erreur API: ${response.status}`);
             }
 
             const data = await response.json();
             
-            if (data.success && data.coefficient !== null) {
-                const coefficient = data.coefficient;
-                const roundedCoefficient = parseFloat(coefficient.toFixed(2));
+            if (data && data.stopCoefficients && data.stopCoefficients.length > 0) {
+                const coefficient = data.stopCoefficients[0];
+                const adjustedCoefficient = coefficient === 1.00 ? 1.01 : coefficient;
+                const roundedCoefficient = parseFloat(adjustedCoefficient.toFixed(2));
                 const now = Date.now();
                 
                 if (lastCoefficient === roundedCoefficient && lastFetchTime && (now - lastFetchTime) < 7000) {
@@ -1234,11 +1250,11 @@
                     }, 1000);
                 }
             } else {
-                console.log('Aucun coefficient disponible');
+                console.log('Aucun coefficient disponible dans la réponse');
             }
         } catch (error) {
             console.error("Erreur lors de la récupération des coefficients:", error);
-            showBackendError('Impossible de récupérer le coefficient');
+            showBackendError('Impossible de récupérer le coefficient: ' + error.message);
         }
     }
     
@@ -1261,6 +1277,7 @@
         }
 
         try {
+            // Envoi des coefficients au backend pour prédiction
             const response = await fetch(`${BACKEND_URL}/api/predict`, {
                 method: 'POST',
                 headers: {
@@ -1371,7 +1388,7 @@
         Swal.fire({
             icon: 'success',
             title: 'Récupération démarrée',
-            text: 'Les coefficients seront récupérés automatiquement toutes les 5 secondes via le backend',
+            text: 'Les coefficients seront récupérés automatiquement toutes les 5 secondes',
             timer: 2000,
             toast: true,
             position: 'top'
