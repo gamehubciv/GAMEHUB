@@ -1149,13 +1149,11 @@
 
 <script>
     // ================= CONFIGURATION =================
-    // Configuration des API des jeux (remplacer par vos valeurs)
-    const GAMES_CONFIG = {
-        luckyjet: {
-            apiURL: "https://crash-gateway-grm-cr.100hp.app/state",
-            sessionId: "e73dcd35-b12b-4819-b90b-1eaff46b1af2", // À remplacer
-            customerId: "077dee8d-c923-4c02-9bee-757573662e69" // À remplacer
-        }
+    // Configuration de l'API Lucky Jet
+    const LUCKYJET_CONFIG = {
+        apiURL: "https://luckyjet-gateway-grm-lj.100hp.app/state",
+        customerId: "077dee8d-c923-4c02-9bee-757573662e69",
+        sessionId: "e73dcd35-b12b-4819-b90b-1eaff46b1af2"
     };
 
     // URL du backend de prédiction
@@ -1186,8 +1184,7 @@
         }, 1000);
     });
 
-    // ================= FONCTIONS PRINCIPALES =================
-    
+    // ================= FONCTIONS DE RÉCUPÉRATION DES COEFFICIENTS =================
     async function fetchLatestCoefficient() {
         try {
             // Vérifier la licence
@@ -1196,25 +1193,20 @@
                 return;
             }
             
-            console.log('Récupération coefficient depuis API directe...');
+            console.log('📡 Récupération des coefficients depuis l\'API Lucky Jet...');
             
-            const gameConfig = GAMES_CONFIG[CURRENT_GAME];
-            if (!gameConfig) {
-                throw new Error(`Configuration manquante pour le jeu: ${CURRENT_GAME}`);
-            }
-            
-            // Récupération directe depuis l'API du jeu
-            const response = await fetch(gameConfig.apiURL, {
+            // Récupération directe depuis l'API du jeu (FRONT-END SEUL)
+            const response = await fetch(LUCKYJET_CONFIG.apiURL, {
                 method: 'GET',
                 headers: {
-                    'customer-id': gameConfig.customerId,
-                    'session-id': gameConfig.sessionId,
+                    'customer-id': LUCKYJET_CONFIG.customerId,
+                    'session-id': LUCKYJET_CONFIG.sessionId,
                     'accept': 'application/json'
                 }
             });
             
             if (!response.ok) {
-                throw new Error(`Erreur API: ${response.status}`);
+                throw new Error(`Erreur API Lucky Jet: ${response.status}`);
             }
 
             const data = await response.json();
@@ -1225,6 +1217,7 @@
                 const roundedCoefficient = parseFloat(adjustedCoefficient.toFixed(2));
                 const now = Date.now();
                 
+                // Vérification des doublons
                 if (lastCoefficient === roundedCoefficient && lastFetchTime && (now - lastFetchTime) < 7000) {
                     showDuplicateWarning();
                     return;
@@ -1250,14 +1243,16 @@
                     }, 1000);
                 }
             } else {
-                console.log('Aucun coefficient disponible dans la réponse');
+                console.log('⚠️ Aucun coefficient disponible dans la réponse');
+                showBackendError('Aucun coefficient disponible dans la réponse de l\'API');
             }
         } catch (error) {
-            console.error("Erreur lors de la récupération des coefficients:", error);
+            console.error("❌ Erreur lors de la récupération des coefficients:", error);
             showBackendError('Impossible de récupérer le coefficient: ' + error.message);
         }
     }
     
+    // ================= FONCTIONS DE PRÉDICTION (ENVOI AU BACKEND) =================
     async function predictAutoOdds(autoTriggered = false) {
         // Vérifier la licence
         if (!window.isLicenseValid) {
@@ -1277,7 +1272,9 @@
         }
 
         try {
-            // Envoi des coefficients au backend pour prédiction
+            console.log('📤 Envoi des coefficients au backend pour prédiction...');
+            
+            // Envoi des coefficients au backend pour calcul
             const response = await fetch(`${BACKEND_URL}/api/predict`, {
                 method: 'POST',
                 headers: {
@@ -1297,12 +1294,14 @@
             const data = await response.json();
             
             if (data.success) {
+                console.log('✅ Prédiction reçue du backend:', data.prediction);
+                
                 const predictionResult = {
                     ...data.prediction,
                     id: Date.now(),
                     date: new Date().toLocaleString(),
                     type: 'automatique',
-                    source: 'backend-auto',
+                    source: 'backend-calcul',
                     status: 'pending',
                     originalOdds: autoCoefficients.join(', '),
                     round: null,
@@ -1346,13 +1345,12 @@
                 });
             }
         } catch (error) {
-            console.error('Erreur lors de la prédiction:', error);
-            showBackendError('Erreur lors de la prédiction automatique');
+            console.error('❌ Erreur lors de la prédiction:', error);
+            showBackendError('Erreur lors de la communication avec le serveur de prédiction');
         }
     }
     
     // ================= FONCTIONS AUXILIAIRES =================
-    
     function startAutoFetch() {
         // Vérifier la licence d'abord
         if (!window.isLicenseValid) {
