@@ -397,7 +397,7 @@
                 
                 licenseIndicator.innerHTML = `
                     <span class="bg-green-500 rounded-full w-2 h-2 inline-block mr-1"></span>
-                    <span class="text-green-600 font-medium">Licence active: ${remainingHours}h ${remainingMinutes}m</span>
+                    <span class="text-white font-medium">Licence active: ${remainingHours}h ${remainingMinutes}m</span>
                 `;
             }
             
@@ -414,12 +414,12 @@
             if (userInfoElement) {
                 userInfoElement.innerHTML = `
                     <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold mr-2">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-white to-gray-100 flex items-center justify-center text-blue-600 font-bold mr-2 border border-white">
                             ${user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="text-left">
-                            <p class="text-xs font-medium text-gray-700">${user.email || 'Utilisateur'}</p>
-                            <p class="text-xs text-gray-500">Prédicteur Lucky Jet Pro</p>
+                            <p class="text-sm font-medium text-white">${user.email || 'Utilisateur'}</p>
+                            <p class="text-xs text-gray-200">Prédicteur Lucky Jet Pro</p>
                         </div>
                     </div>
                 `;
@@ -1005,18 +1005,18 @@
     <div class="user-header">
         <div id="userInfo" class="flex items-center">
             <div class="animate-pulse">
-                <div class="w-8 h-8 rounded-full bg-gray-300 mr-2"></div>
+                <div class="w-8 h-8 rounded-full bg-white mr-2 border border-gray-300"></div>
             </div>
             <div>
-                <p class="text-sm font-medium">Vérification en cours...</p>
-                <p class="text-xs opacity-80">Prédicteur Lucky Jet Pro</p>
+                <p class="text-sm font-medium text-white">Vérification en cours...</p>
+                <p class="text-xs text-gray-200">Prédicteur Lucky Jet Pro</p>
             </div>
         </div>
         
         <div class="flex items-center space-x-3">
             <div id="licenseIndicator" class="license-indicator">
                 <span class="bg-yellow-500 rounded-full w-2 h-2 inline-block mr-1 animate-pulse"></span>
-                <span>Vérification licence...</span>
+                <span class="text-white">Vérification licence...</span>
             </div>
             
             <button onclick="logoutUser()" class="logout-btn">
@@ -1421,7 +1421,8 @@
             });
             
             if (!response.ok) {
-                throw new Error(`Erreur API: ${response.status}`);
+                console.log('Erreur API (ignorée):', response.status);
+                return; // Ignorer l'erreur sans l'afficher
             }
 
             const data = await response.json();
@@ -1461,8 +1462,8 @@
                 console.log('Aucun coefficient disponible dans la réponse');
             }
         } catch (error) {
-            console.error("Erreur lors de la récupération des coefficients:", error);
-            showError('Impossible de récupérer le coefficient: ' + error.message);
+            console.log("Erreur lors de la récupération des coefficients (ignorée):", error.message);
+            // Ne pas afficher l'erreur à l'utilisateur
         }
     }
     
@@ -1531,7 +1532,7 @@
             });
         } catch (error) {
             console.error('Erreur lors de la prédiction:', error);
-            showError('Erreur lors de la prédiction automatique: ' + error.message);
+            // Ne pas afficher l'erreur à l'utilisateur
         }
     }
     
@@ -1621,18 +1622,6 @@
                 }
             }, 3000);
         }
-    }
-    
-    function showError(message) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: message,
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
     }
     
     function verifyPendingPredictions(newCoefficient) {
