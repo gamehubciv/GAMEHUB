@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👨‍🚀 Predicteur Pro - Astronaute</title>
+    <title>🚀 Predicteur Pro - Rocket Queen</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,17 +78,17 @@
             }
         });
 
-        // Vérifier la licence de l'utilisateur pour le jeu Astronaute
+        // Vérifier la licence de l'utilisateur pour le jeu Rocket Queen
         async function checkUserLicense(userId) {
             console.log("Vérification de la licence pour l'utilisateur:", userId);
             
             try {
                 const userPurchasesRef = collection(db, 'users', userId, 'purchases');
                 
-                // Chercher toutes les licences pour 'astronaut'
+                // Chercher toutes les licences pour 'rocketqueen'
                 const q = query(
                     userPurchasesRef,
-                    where('gameId', '==', 'astronaut')
+                    where('gameId', '==', 'rocketqueen')
                 );
                 
                 console.log("Exécution de la requête Firestore...");
@@ -96,8 +96,8 @@
                 console.log("Résultats trouvés:", querySnapshot.size);
                 
                 if (querySnapshot.empty) {
-                    console.log("Aucune licence trouvée pour 'astronaut'");
-                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur Astronaute", true);
+                    console.log("Aucune licence trouvée pour 'rocketqueen'");
+                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur Rocket Queen", true);
                     window.isLicenseValid = false;
                     disableBotFeatures();
                     return;
@@ -339,7 +339,7 @@
             if (resultElement) {
                 resultElement.innerHTML = `
                     <div class="text-center p-4">
-                        <i class="fas fa-user-astronaut text-3xl text-red-400 mb-3"></i>
+                        <i class="fas fa-rocket text-3xl text-purple-400 mb-3"></i>
                         <p class="text-gray-600">Le prédicteur est verrouillé</p>
                         <p class="text-sm text-gray-500 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
                     </div>
@@ -406,12 +406,12 @@
             if (userInfoElement) {
                 userInfoElement.innerHTML = `
                     <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-red-700 to-red-500 flex items-center justify-center text-white font-bold mr-2 border border-red-300">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 flex items-center justify-center text-white font-bold mr-2 border border-purple-300">
                             ${user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="text-left">
                             <p class="text-sm font-medium text-white">${user.email || 'Utilisateur'}</p>
-                            <p class="text-xs text-red-200">Prédicteur Astronaute Pro</p>
+                            <p class="text-xs text-purple-200">Prédicteur Rocket Queen Pro</p>
                         </div>
                     </div>
                 `;
@@ -483,40 +483,17 @@
             to { opacity: 1; transform: scale(1); }
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .floating {
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.5); }
-        }
-        
-        .glowing {
-            animation: glow 2s infinite;
-        }
-        
-        /* Animation spatiale pour l'astronaute */
-        @keyframes spaceFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(5px, -5px) rotate(2deg); }
-            50% { transform: translate(0, -10px) rotate(0deg); }
-            75% { transform: translate(-5px, -5px) rotate(-2deg); }
-        }
-        
-        .space-animation {
-            animation: spaceFloat 4s ease-in-out infinite;
+        .countdown-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(145deg, #f3f4f6, #ffffff);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
         .coefficient-badge {
             display: inline-block;
-            background: linear-gradient(145deg, #991B1B, #DC2626);
+            background: linear-gradient(145deg, #8B5CF6, #A78BFA);
             color: white;
             border-radius: 9999px;
             padding: 0.25rem 0.75rem;
@@ -524,15 +501,15 @@
             margin: 0.25rem;
             animation: fadeIn 0.3s ease-out;
             font-weight: bold;
-            border: 1px solid #FCA5A5;
+            border: 1px solid #C4B5FD;
         }
         
         .auto-fetch-container {
-            background: linear-gradient(145deg, #7F1D1D, #991B1B);
+            background: linear-gradient(145deg, #5B21B6, #7C3AED);
             border-radius: 12px;
             padding: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border: 1px solid #DC2626;
+            border: 1px solid #A78BFA;
         }
         
         .verification-status {
@@ -544,69 +521,88 @@
         }
         
         .verification-in-progress {
-            background-color: rgba(251, 191, 36, 0.2);
-            color: #D97706;
+            background-color: #FEF3C7;
+            color: #92400E;
             border: 1px solid #FBBF24;
         }
         
         .verification-success {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #16A34A;
-            border: 1px solid #22C55E;
+            background-color: #10B981;
+            color: white;
+            border: 1px solid #34D399;
         }
         
         .verification-failed {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #DC2626;
-            border: 1px solid #EF4444;
+            background-color: #EF4444;
+            color: white;
+            border: 1px solid #F87171;
         }
         
         .round-indicator {
             display: inline-block;
-            background: linear-gradient(145deg, #DC2626, #EF4444);
-            color: white;
+            background: linear-gradient(145deg, #F59E0B, #FBBF24);
+            color: #000;
             border-radius: 8px;
             padding: 0.3rem 0.8rem;
             font-weight: bold;
             font-size: 0.9rem;
             margin: 0.1rem;
-            border: 1px solid #FCA5A5;
+            border: 1px solid #FBBF24;
         }
         
         .history-item {
             transition: all 0.3s ease;
-            border: 1px solid #374151;
+            border: 1px solid #E5E7EB;
         }
         
         .history-item:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-            border-color: #DC2626;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+            border-color: #8B5CF6;
         }
         
         .stats-card {
-            background: linear-gradient(145deg, #7F1D1D, #991B1B);
+            background: linear-gradient(145deg, #6D28D9, #7C3AED);
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             padding: 1rem;
-            border: 1px solid #DC2626;
+            border: 1px solid #8B5CF6;
         }
         
         .robot-header {
-            background: linear-gradient(135deg, #7F1D1D, #991B1B);
+            background: linear-gradient(135deg, #6D28D9, #7C3AED);
             color: white;
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1rem;
-            border: 1px solid #DC2626;
+            border: 1px solid #8B5CF6;
         }
         
         .feature-card {
-            background: linear-gradient(145deg, #991B1B, #B91C1C);
+            background: linear-gradient(145deg, #8B5CF6, #A78BFA);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 0.75rem;
-            border: 1px solid #DC2626;
+            border: 1px solid #C4B5FD;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.5); }
+        }
+        
+        .glowing {
+            animation: glow 2s infinite;
         }
         
         .confidence-level {
@@ -618,7 +614,7 @@
         .confidence-fill {
             height: 100%;
             border-radius: 5px;
-            background: #DC2626;
+            background: #F59E0B;
             transition: width 1s ease-in-out;
         }
         
@@ -632,21 +628,19 @@
         }
         
         .trend-up {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #22C55E;
-            border: 1px solid #22C55E;
+            background-color: #10B981;
+            color: white;
         }
         
         .trend-down {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #EF4444;
-            border: 1px solid #EF4444;
+            background-color: #EF4444;
+            color: white;
         }
         
         .trend-stable {
-            background-color: rgba(251, 191, 36, 0.2);
-            color: #FBBF24;
-            border: 1px solid #FBBF24;
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #92400E;
+            border: 1px solid #F59E0B;
         }
         
         .pattern-indicator {
@@ -659,26 +653,26 @@
         }
         
         .pattern-bullish {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #22C55E;
-            border-left: 3px solid #22C55E;
+            background-color: #10B981;
+            color: white;
+            border-left: 3px solid #34D399;
         }
         
         .pattern-bearish {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #EF4444;
-            border-left: 3px solid #EF4444;
+            background-color: #EF4444;
+            color: white;
+            border-left: 3px solid #F87171;
         }
         
         .pattern-neutral {
-            background-color: rgba(251, 191, 36, 0.2);
-            color: #FBBF24;
-            border-left: 3px solid #FBBF24;
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #92400E;
+            border-left: 3px solid #F59E0B;
         }
         
         .duplicate-warning {
-            background-color: rgba(251, 191, 36, 0.2);
-            color: #D97706;
+            background-color: #FEF3C7;
+            color: #92400E;
             border: 1px solid #FBBF24;
             padding: 8px;
             border-radius: 6px;
@@ -689,43 +683,43 @@
         }
         
         body {
-            background: linear-gradient(135deg, #450A0A, #7F1D1D);
+            background: linear-gradient(135deg, #7C3AED, #5B21B6);
             min-height: 100vh;
             color: #f8fafc;
         }
         
         .dashboard-card {
-            background: linear-gradient(145deg, #7F1D1D, #991B1B);
+            background: linear-gradient(145deg, #6D28D9, #7C3AED);
             border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             overflow: hidden;
             transition: transform 0.3s ease;
             padding: 1rem;
-            border: 1px solid #DC2626;
+            border: 1px solid #8B5CF6;
         }
         
         .dashboard-card:hover {
             transform: translateY(-3px);
-            border-color: #FCA5A5;
-            box-shadow: 0 8px 16px rgba(220, 38, 38, 0.1);
+            border-color: #F59E0B;
+            box-shadow: 0 8px 16px rgba(245, 158, 11, 0.1);
         }
         
         .gradient-btn {
-            background: linear-gradient(135deg, #DC2626, #B91C1C);
-            color: white;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: #000;
             border: none;
             border-radius: 10px;
             padding: 10px 20px;
             font-weight: 600;
             transition: all 0.3s ease;
             font-size: 0.9rem;
-            border: 1px solid #EF4444;
+            border: 1px solid #FBBF24;
         }
         
         .gradient-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
-            background: linear-gradient(135deg, #EF4444, #DC2626);
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+            background: linear-gradient(135deg, #FBBF24, #F59E0B);
         }
         
         .status-badge {
@@ -743,7 +737,7 @@
         }
         
         .status-success {
-            background: #22C55E;
+            background: #10B981;
             color: white;
         }
         
@@ -755,9 +749,9 @@
         .validation-container {
             margin-top: 1.2rem;
             padding: 1rem;
-            background: linear-gradient(145deg, #991B1B, #B91C1C);
+            background: linear-gradient(145deg, #8B5CF6, #A78BFA);
             border-radius: 10px;
-            border: 1px solid #DC2626;
+            border: 1px solid #C4B5FD;
         }
         
         .validation-status {
@@ -770,21 +764,21 @@
         }
         
         .validation-pending {
-            background-color: rgba(251, 191, 36, 0.2);
-            color: #FBBF24;
+            background-color: #F59E0B;
+            color: #000;
             border: 1px solid #FBBF24;
         }
         
         .validation-success {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #22C55E;
-            border: 1px solid #22C55E;
+            background-color: #10B981;
+            color: white;
+            border: 1px solid #34D399;
         }
         
         .validation-failed {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #EF4444;
-            border: 1px solid #EF4444;
+            background-color: #EF4444;
+            color: white;
+            border: 1px solid #F87171;
         }
         
         .advanced-input {
@@ -823,7 +817,7 @@
         
         .stats-detail {
             font-size: 0.75rem;
-            color: #FCA5A5;
+            color: #E5E7EB;
             margin-top: 0.25rem;
         }
         
@@ -831,8 +825,8 @@
             font-size: 0.65rem;
             padding: 2px 6px;
             border-radius: 4px;
-            background-color: rgba(220, 38, 38, 0.3);
-            color: #FCA5A5;
+            background-color: #8B5CF6;
+            color: white;
             margin-top: 2px;
             display: inline-block;
         }
@@ -840,7 +834,7 @@
         .prediction-accuracy {
             font-size: 0.75rem;
             color: #f8fafc;
-            background-color: rgba(220, 38, 38, 0.3);
+            background-color: #8B5CF6;
             padding: 0.25rem 0.5rem;
             border-radius: 9999px;
             display: inline-block;
@@ -856,8 +850,8 @@
         }
         
         .round-notification {
-            background: linear-gradient(145deg, #DC2626, #EF4444);
-            color: white;
+            background: linear-gradient(145deg, #F59E0B, #D97706);
+            color: #000;
             padding: 12px;
             border-radius: 10px;
             text-align: center;
@@ -865,24 +859,24 @@
             font-weight: 500;
             font-size: 0.95rem;
             animation: fadeIn 0.5s ease-out;
-            border: 1px solid #FCA5A5;
+            border: 1px solid #FBBF24;
         }
         
         .margin-info {
-            background: linear-gradient(145deg, #991B1B, #B91C1C);
-            color: #FCA5A5;
+            background: linear-gradient(145deg, #8B5CF6, #A78BFA);
+            color: white;
             padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
             font-size: 0.85rem;
             text-align: center;
             font-weight: 500;
-            border: 1px solid #DC2626;
+            border: 1px solid #C4B5FD;
         }
         
         /* Ajouter un en-tête utilisateur */
         .user-header {
-            background: linear-gradient(135deg, #7F1D1D, #991B1B);
+            background: linear-gradient(135deg, #5B21B6, #7C3AED);
             color: white;
             border-radius: 12px;
             padding: 1rem;
@@ -890,24 +884,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 2px solid #DC2626;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+            border: 2px solid #F59E0B;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
         }
         
         .license-indicator {
-            background: rgba(220, 38, 38, 0.2);
+            background: rgba(245, 158, 11, 0.2);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
-            border: 1px solid rgba(220, 38, 38, 0.3);
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
         
         .logout-btn {
-            background: rgba(220, 38, 38, 0.2);
-            color: #FCA5A5;
-            border: 1px solid rgba(220, 38, 38, 0.3);
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+            border: 1px solid rgba(245, 158, 11, 0.3);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
@@ -918,34 +912,8 @@
         }
         
         .logout-btn:hover {
-            background: rgba(220, 38, 38, 0.3);
-            border-color: #FCA5A5;
-        }
-        
-        /* Effets d'étoiles dans le fond */
-        .star {
-            position: absolute;
-            background-color: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-        
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-        
-        .stats-box {
-            background: linear-gradient(145deg, #991B1B, #B91C1C);
-            border: 1px solid #DC2626;
-            border-radius: 10px;
-            padding: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .stats-box:hover {
-            border-color: #FCA5A5;
-            transform: translateY(-2px);
+            background: rgba(245, 158, 11, 0.3);
+            border-color: #F59E0B;
         }
         
         @media (max-width: 768px) {
@@ -1041,26 +1009,76 @@
                 padding: 0.5rem;
             }
         }
+        
+        /* Styles spécifiques Rocket Queen */
+        .rocket-text {
+            color: #8B5CF6;
+        }
+        
+        .yellow-accent {
+            color: #F59E0B;
+        }
+        
+        .white-accent {
+            color: #f8fafc;
+        }
+        
+        .rocket-queen-border {
+            border-color: #F59E0B;
+        }
+        
+        .rocket-queen-bg {
+            background: linear-gradient(135deg, #5B21B6, #7C3AED);
+        }
+        
+        .success-yellow {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: #000;
+        }
+        
+        .stats-box {
+            background: linear-gradient(145deg, #7C3AED, #8B5CF6);
+            border: 1px solid #A78BFA;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .stats-box:hover {
+            border-color: #F59E0B;
+            transform: translateY(-2px);
+        }
+        
+        /* Animation de fusée */
+        @keyframes rocketLaunch {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.1); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        
+        .rocket-animation {
+            animation: rocketLaunch 2s ease-in-out infinite;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-red-950 to-red-900 text-white">
+<body class="bg-gradient-to-br from-purple-800 to-purple-900 text-white">
 
 <!-- En-tête utilisateur et licence -->
 <div class="container mx-auto px-2 py-4">
     <div class="user-header">
         <div id="userInfo" class="flex items-center">
             <div class="animate-pulse">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-red-700 to-red-500 mr-2 border border-red-300"></div>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-purple-400 mr-2 border border-purple-300"></div>
             </div>
             <div>
                 <p class="text-sm font-medium text-white">Vérification en cours...</p>
-                <p class="text-xs text-red-200">Prédicteur Astronaute Pro</p>
+                <p class="text-xs text-purple-200">Prédicteur Rocket Queen Pro</p>
             </div>
         </div>
         
         <div class="flex items-center space-x-3">
             <div id="licenseIndicator" class="license-indicator">
-                <span class="bg-red-500 rounded-full w-2 h-2 inline-block mr-1 animate-pulse"></span>
+                <span class="bg-yellow-500 rounded-full w-2 h-2 inline-block mr-1 animate-pulse"></span>
                 <span class="text-white">Vérification licence...</span>
             </div>
             
@@ -1081,37 +1099,37 @@
             <div class="dashboard-card">
                 <div class="auto-fetch-container">
                     <div class="auto-fetch-header flex justify-between items-center">
-                        <div class="auto-fetch-title font-bold text-red-200 text-sm">
-                            <i class="fas fa-user-astronaut mr-2 space-animation"></i> Récupération Automatique
+                        <div class="auto-fetch-title font-bold text-yellow-300 text-sm">
+                            <i class="fas fa-rocket mr-2 rocket-animation"></i> Récupération Automatique
                         </div>
-                        <div class="auto-fetch-status text-red-100 text-sm" id="autoFetchStatus">
+                        <div class="auto-fetch-status text-purple-100 text-sm" id="autoFetchStatus">
                             <span class="auto-fetch-dot bg-red-500 rounded-full w-2 h-2 inline-block mr-1"></span>
                             <span>En attente de licence</span>
                         </div>
                     </div>
                     
-                    <div class="coefficients-display mt-3 bg-red-900 rounded-lg p-3" id="coefficientsDisplay">
-                        <p class="text-center text-red-300 text-sm">Vérifiez votre licence pour activer le prédicteur</p>
+                    <div class="coefficients-display mt-3 bg-purple-800 rounded-lg p-3" id="coefficientsDisplay">
+                        <p class="text-center text-purple-300 text-sm">Vérifiez votre licence pour activer le prédicteur</p>
                     </div>
                     
                     <div class="flex gap-3 mt-3 flex-wrap">
                         <button onclick="startAutoFetch()" class="flex-1 gradient-btn min-w-[120px]" disabled>
                             <i class="fas fa-play mr-2"></i> Démarrer
                         </button>
-                        <button onclick="stopAutoFetch()" class="flex-1 bg-gradient-to-r from-red-800 to-red-900 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]" disabled>
+                        <button onclick="stopAutoFetch()" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]" disabled>
                             <i class="fas fa-stop mr-2"></i> Arrêter
                         </button>
-                        <button onclick="openAdvancedSettings()" class="flex-1 bg-gradient-to-r from-red-700 to-red-800 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]" disabled>
+                        <button onclick="openAdvancedSettings()" class="flex-1 bg-gradient-to-r from-purple-700 to-purple-800 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[120px]" disabled>
                             <i class="fas fa-cog mr-2"></i> Options
                         </button>
                     </div>
                 </div>
                 
-                <div id="result" class="bg-red-900 rounded-lg p-4 mt-4 border border-red-800">
+                <div id="result" class="bg-purple-800 rounded-lg p-4 mt-4 border border-purple-700">
                     <div class="text-center p-4">
-                        <i class="fas fa-user-astronaut text-3xl text-red-400 mb-3 space-animation"></i>
-                        <p class="text-red-200">Le prédicteur est verrouillé</p>
-                        <p class="text-sm text-red-300 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
+                        <i class="fas fa-rocket text-3xl text-purple-400 mb-3 rocket-animation"></i>
+                        <p class="text-purple-200">Le prédicteur est verrouillé</p>
+                        <p class="text-sm text-purple-300 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
                     </div>
                 </div>
             </div>
@@ -1120,27 +1138,27 @@
         <!-- Colonne de droite -->
         <div>
             <div class="stats-card mb-4">
-                <h3 class="text-lg font-bold text-red-200 mb-3">
-                    <i class="fas fa-chart-pie text-red-300 mr-2"></i>
+                <h3 class="text-lg font-bold text-yellow-300 mb-3">
+                    <i class="fas fa-chart-pie text-yellow-400 mr-2"></i>
                     Statistiques Globales
                 </h3>
                 <div id="statsContainer" class="text-center">
-                    <p id="totalPredictions" class="text-2xl font-bold text-red-300">0</p>
-                    <p id="predictionAccuracy" class="text-xl font-bold text-green-300 mt-1">0%</p>
+                    <p id="totalPredictions" class="text-2xl font-bold text-yellow-400">0</p>
+                    <p id="predictionAccuracy" class="text-xl font-bold text-green-400 mt-1">0%</p>
                     <div class="grid grid-cols-3 gap-3 mt-3">
                         <div class="stats-box">
                             <p class="text-lg font-bold text-green-400">✅</p>
-                            <p class="text-xs text-red-200">Validées</p>
+                            <p class="text-xs text-purple-200">Validées</p>
                             <p id="successCount" class="font-bold text-white">0</p>
                         </div>
                         <div class="stats-box">
                             <p class="text-lg font-bold text-red-400">❌</p>
-                            <p class="text-xs text-red-200">Échouées</p>
+                            <p class="text-xs text-purple-200">Échouées</p>
                             <p id="failedCount" class="font-bold text-white">0</p>
                         </div>
                         <div class="stats-box">
-                            <p class="text-lg font-bold text-red-300">⏳</p>
-                            <p class="text-xs text-red-200">En attente</p>
+                            <p class="text-lg font-bold text-yellow-400">⏳</p>
+                            <p class="text-xs text-purple-200">En attente</p>
                             <p id="pendingCount" class="font-bold text-white">0</p>
                         </div>
                     </div>
@@ -1149,17 +1167,17 @@
             
             <div class="stats-card mb-4">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-bold text-red-200">
-                        <i class="fas fa-brain text-red-300 mr-2"></i>
+                    <h3 class="text-lg font-bold text-yellow-300">
+                        <i class="fas fa-brain text-yellow-400 mr-2"></i>
                         Analyse Intelligence
                     </h3>
-                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-red-700 to-red-800 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" disabled>
+                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-purple-700 to-purple-800 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" disabled>
                         Actualiser
                     </button>
                 </div>
                 <div id="intelligentAnalysis" class="text-xs space-y-2">
-                    <div class="text-center text-red-300 p-3">
-                        <i class="fas fa-lock text-2xl text-red-400 mb-2"></i>
+                    <div class="text-center text-purple-300 p-3">
+                        <i class="fas fa-lock text-2xl text-purple-400 mb-2"></i>
                         <p>Activez votre licence pour débloquer l'analyse</p>
                     </div>
                 </div>
@@ -1167,22 +1185,22 @@
             
             <div class="dashboard-card">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-bold text-red-200">
-                        <i class="fas fa-history text-red-300 mr-2"></i>
+                    <h3 class="text-lg font-bold text-yellow-300">
+                        <i class="fas fa-history text-yellow-400 mr-2"></i>
                         Historique des Prédictions
                     </h3>
                     <div class="flex gap-2">
-                        <button id="toggleHistory" class="bg-gradient-to-r from-red-700 to-red-800 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
+                        <button id="toggleHistory" class="bg-gradient-to-r from-purple-700 to-purple-800 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
                             Masquer
                         </button>
-                        <button id="deleteHistory" class="bg-gradient-to-r from-red-800 to-red-900 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="deleteHistory()">
+                        <button id="deleteHistory" class="bg-gradient-to-r from-red-600 to-red-700 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="deleteHistory()">
                             <i class="fas fa-trash-alt mr-1"></i>Supprimer
                         </button>
                     </div>
                 </div>
                 <div id="predictionHistory" class="space-y-3 max-h-[400px] overflow-y-auto pr-1 text-sm">
-                    <div class="text-center text-red-300 p-4">
-                        <i class="fas fa-chart-line text-2xl text-red-400 mb-2"></i>
+                    <div class="text-center text-purple-300 p-4">
+                        <i class="fas fa-chart-line text-2xl text-purple-400 mb-2"></i>
                         <p>Aucune donnée disponible</p>
                         <p class="text-xs mt-1">L'historique s'affichera ici après vos premières prédictions</p>
                     </div>
@@ -1194,10 +1212,10 @@
 
 <script>
     // ================= CONFIGURATION =================
-    // Configuration API pour Astronaute
+    // Configuration API pour Rocket Queen
     const API_URL = "https://crash-gateway-grm-cr.100hp.app/state";
     const CUSTOMER_ID = '077dee8d-c923-4c02-9bee-757573662e69';
-    const SESSION_ID = '22cc6253-32a8-4aed-95fc-82216b5a314e';
+    const SESSION_ID = '25369bd7-6c50-49d1-846c-8b1cc1ae4239';
 
     // Variables globales
     let predictionHistory = JSON.parse(localStorage.getItem('predictionHistory')) || [];
@@ -1221,51 +1239,7 @@
                 analyzeHistoricalData();
             }
         }, 1000);
-        
-        // Ajouter des étoiles animées en arrière-plan
-        createStars();
     });
-
-    // Fonction pour créer des étoiles animées
-    function createStars() {
-        const starsContainer = document.createElement('div');
-        starsContainer.id = 'stars';
-        starsContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        `;
-        
-        document.body.appendChild(starsContainer);
-        
-        // Créer 50 étoiles
-        for (let i = 0; i < 50; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            
-            const size = Math.random() * 2 + 1;
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            const delay = Math.random() * 3;
-            const duration = Math.random() * 2 + 1;
-            
-            star.style.cssText = `
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}%;
-                top: ${y}%;
-                animation-delay: ${delay}s;
-                animation-duration: ${duration}s;
-            `;
-            
-            starsContainer.appendChild(star);
-        }
-    }
 
     // ================= FONCTIONS DU DEUXIÈME FICHIER =================
     
@@ -1609,8 +1583,8 @@
                         <p><strong>Prédiction brute:</strong> ${predictionResult.rawOdds}</p>
                         <p><strong>Prédiction finale (avec marge ${predictionResult.marginPercentage}%):</strong> ${predictionResult.finalOdds}</p>
                         <p><strong>Confiance:</strong> ${predictionResult.confidence}%</p>
-                        <div class="mt-2 p-2 bg-red-900 rounded-lg border border-red-700">
-                            <p class="font-semibold text-red-300">👨‍🚀 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
+                        <div class="mt-2 p-2 bg-purple-800 rounded-lg border border-yellow-500">
+                            <p class="font-semibold text-yellow-400">🚀 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
                         </div>
                     </div>
                 `,
@@ -1652,7 +1626,7 @@
         statusElement.innerHTML = `
             <span class="bg-green-500 rounded-full w-2 h-2 inline-block mr-1"></span>
             <span>Récupération en cours...</span>
-            <span class="fetching-spinner ml-2 w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full inline-block animate-spin"></span>
+            <span class="fetching-spinner ml-2 w-3 h-3 border-2 border-yellow-500 border-t-transparent rounded-full inline-block animate-spin"></span>
         `;
         
         fetchLatestCoefficient();
@@ -1776,7 +1750,7 @@
         const displayElement = document.getElementById('coefficientsDisplay');
         
         if (autoCoefficients.length === 0) {
-            displayElement.innerHTML = '<p class="text-center text-red-300 text-sm">Les coefficients apparaîtront ici</p>';
+            displayElement.innerHTML = '<p class="text-center text-purple-300 text-sm">Les coefficients apparaîtront ici</p>';
             return;
         }
         
@@ -1786,7 +1760,7 @@
                     <div class="coefficient-badge text-xs">${coef}</div>
                 `).join('')}
             </div>
-            <div class="text-center mt-2 text-xs text-red-300">
+            <div class="text-center mt-2 text-xs text-purple-300">
                 ${5 - autoCoefficients.length} coefficient(s) restant(s) avant prédiction
             </div>
         `;
@@ -1815,7 +1789,7 @@
         
         roundHTML = `
             <div class="round-notification">
-                <i class="fas fa-user-astronaut mr-2"></i>
+                <i class="fas fa-rocket mr-2"></i>
                 La prédiction finale de <strong>${prediction.finalOdds}</strong> devrait apparaître dans l'un des 3 rounds suivants (1, 2 ou 3)
             </div>
         `;
@@ -1838,7 +1812,7 @@
                         <i class="fas fa-sync-alt fa-spin mr-2"></i>
                         Vérification en cours - Round ${currentRound}/3
                     </div>
-                    <p class="text-xs text-center mt-2 text-red-300">
+                    <p class="text-xs text-center mt-2 text-purple-300">
                         Le système vérifie automatiquement cette prédiction sur les 3 prochains rounds
                     </p>
                 </div>
@@ -1871,18 +1845,18 @@
         
         document.getElementById('result').innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center p-3 bg-red-900 rounded-lg border border-red-800">
-                    <span class="text-xs text-red-300 block mb-1">Prédiction Brute</span>
-                    <p class="text-xl font-bold text-red-300">${prediction.rawOdds}</p>
+                <div class="text-center p-3 bg-purple-800 rounded-lg border border-purple-700">
+                    <span class="text-xs text-purple-300 block mb-1">Prédiction Brute</span>
+                    <p class="text-xl font-bold text-yellow-400">${prediction.rawOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-red-900 rounded-lg border border-red-800">
-                    <span class="text-xs text-red-300 block mb-1">Prédiction Finale</span>
-                    <p class="text-2xl font-bold text-red-300">${prediction.finalOdds}</p>
+                <div class="text-center p-3 bg-purple-800 rounded-lg border border-purple-700">
+                    <span class="text-xs text-purple-300 block mb-1">Prédiction Finale</span>
+                    <p class="text-2xl font-bold text-yellow-400">${prediction.finalOdds}</p>
                 </div>
                 
                 <div class="text-center p-3 bg-green-900 rounded-lg border border-green-800">
-                    <span class="text-xs text-red-300 block mb-1">Probabilité de Réussite</span>
+                    <span class="text-xs text-purple-300 block mb-1">Probabilité de Réussite</span>
                     <p class="text-xl font-bold text-green-400">${prediction.probabilities[0]}%</p>
                 </div>
             </div>
@@ -1892,24 +1866,24 @@
             
             <div class="mt-4">
                 <div class="flex justify-between mb-1">
-                    <span class="text-sm font-medium text-red-200">Score de prédiction</span>
-                    <span class="prediction-score text-red-300">${prediction.globalScore}</span>
+                    <span class="text-sm font-medium text-purple-200">Score de prédiction</span>
+                    <span class="prediction-score text-yellow-400">${prediction.globalScore}</span>
                 </div>
             </div>
             
             <div class="mt-3">
                 <div class="flex justify-between mb-1">
-                    <span class="text-sm font-medium text-red-200">Niveau de confiance</span>
-                    <span class="text-sm font-medium text-red-300">${prediction.confidence}%</span>
+                    <span class="text-sm font-medium text-purple-200">Niveau de confiance</span>
+                    <span class="text-sm font-medium text-yellow-400">${prediction.confidence}%</span>
                 </div>
-                <div class="confidence-level w-full rounded-full h-2 bg-red-800">
+                <div class="confidence-level w-full rounded-full h-2 bg-purple-700">
                     <div class="confidence-fill h-2 rounded-full" style="width: ${prediction.confidence}%"></div>
                 </div>
             </div>
             
             <div class="mt-3 flex justify-between items-center flex-wrap">
                 <div class="mb-1">
-                    <span class="text-xs text-red-300">Tendance: </span>
+                    <span class="text-xs text-purple-300">Tendance: </span>
                     ${trendIndicator}
                 </div>
                 <div>
@@ -1917,7 +1891,7 @@
                 </div>
             </div>
             
-            <div class="mt-2 text-xs text-red-300">
+            <div class="mt-2 text-xs text-purple-300">
                 Volatilité: ${prediction.volatility}
             </div>
             
@@ -1930,8 +1904,8 @@
         
         if (predictionHistory.length === 0) {
             historyContainer.innerHTML = `
-                <div class="text-center text-red-300 p-4">
-                    <i class="fas fa-chart-line text-2xl text-red-400 mb-2"></i>
+                <div class="text-center text-purple-300 p-4">
+                    <i class="fas fa-chart-line text-2xl text-purple-400 mb-2"></i>
                     <p>Aucune donnée disponible</p>
                     <p class="text-xs mt-1">L'historique s'affichera ici après vos premières prédictions</p>
                 </div>
@@ -1944,20 +1918,20 @@
             const pendingInfo = pendingVerification.find(p => p.id === prediction.id);
             
             return `
-            <div class="history-item bg-red-900 border border-red-800 p-3 rounded-lg">
+            <div class="history-item bg-purple-800 border border-purple-700 p-3 rounded-lg">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="font-semibold text-red-200 text-sm">${prediction.date}</p>
-                                <p class="text-xs text-red-300">
+                                <p class="font-semibold text-purple-200 text-sm">${prediction.date}</p>
+                                <p class="text-xs text-purple-300">
                                     Prédiction: 
-                                    <span class="font-bold text-red-300">${prediction.finalOdds}</span> 
-                                    <span class="text-red-400 text-xs">(Brute: ${prediction.rawOdds})</span>
+                                    <span class="font-bold text-yellow-400">${prediction.finalOdds}</span> 
+                                    <span class="text-purple-400 text-xs">(Brute: ${prediction.rawOdds})</span>
                                     <span class="ml-1 text-xs">(${prediction.probabilities[0]}%)</span>
                                 </p>
-                                <p class="text-xs text-red-400">${prediction.type === 'automatique' ? '⚡ Auto' : '✍️ Manuel'}</p>
-                                <p class="text-xs text-red-300 font-medium">
+                                <p class="text-xs text-purple-400">${prediction.type === 'automatique' ? '⚡ Auto' : '✍️ Manuel'}</p>
+                                <p class="text-xs text-yellow-400 font-medium">
                                     <i class="fas fa-percentage mr-1"></i>Marge: ${prediction.marginPercentage}%
                                 </p>
                             </div>
@@ -1973,8 +1947,8 @@
                         </div>
                         
                         <div class="mt-1 text-xs">
-                            <span class="text-red-300">Confiance: </span>
-                            <span class="font-semibold text-red-300">${prediction.confidence}%</span>
+                            <span class="text-purple-300">Confiance: </span>
+                            <span class="font-semibold text-yellow-400">${prediction.confidence}%</span>
                         </div>
                         
                         ${prediction.type === 'manuelle' && prediction.status === 'pending' ? `
@@ -1995,7 +1969,7 @@
                         ` : ''}
                         
                         ${isPendingVerification ? `
-                            <div class="mt-2 text-xs bg-red-800 text-red-200 p-1.5 rounded border border-red-700">
+                            <div class="mt-2 text-xs bg-yellow-900 text-yellow-200 p-1.5 rounded border border-yellow-700">
                                 <i class="fas fa-sync-alt fa-spin mr-1"></i>
                                 Vérification en cours: 
                                 <span class="font-bold">Round ${pendingInfo.currentRound}/3</span>
@@ -2035,8 +2009,8 @@
                         <div class="mb-4">
                             <p class="text-sm mb-3">Prédiction finale: ${prediction.finalOdds} (Brute: ${prediction.rawOdds})</p>
                             <p class="text-sm mb-3">Probabilité initiale: ${prediction.probabilities[0]}%</p>
-                            <label class="block text-red-200 mb-2">À quel round la prédiction a-t-elle été validée? (1-3)</label>
-                            <select id="roundSelect" class="w-full p-2 border rounded bg-red-900 text-white">
+                            <label class="block text-purple-200 mb-2">À quel round la prédiction a-t-elle été validée? (1-3)</label>
+                            <select id="roundSelect" class="w-full p-2 border rounded bg-purple-800 text-white">
                                 ${[1,2,3].map(num => 
                                     `<option value="${num}">Round ${num}</option>`
                                 ).join('')}
@@ -2044,11 +2018,11 @@
                         </div>
                     `,
                     confirmButtonText: 'Confirmer',
-                    confirmButtonColor: '#DC2626',
+                    confirmButtonColor: '#F59E0B',
                     showCancelButton: true,
                     cancelButtonText: 'Annuler',
                     allowOutsideClick: false,
-                    background: '#7F1D1D',
+                    background: '#6D28D9',
                     color: 'white'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -2069,7 +2043,7 @@
                             position: 'top-end',
                             showConfirmButton: false,
                             timer: 3000,
-                            background: '#7F1D1D',
+                            background: '#6D28D9',
                             color: 'white'
                         });
                     }
@@ -2111,7 +2085,7 @@
                 confirmButtonText: 'Acheter une licence',
                 showCancelButton: true,
                 cancelButtonText: 'Annuler',
-                background: '#7F1D1D',
+                background: '#6D28D9',
                 color: 'white'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -2133,8 +2107,8 @@
             html: `
                 <div class="grid grid-cols-1 gap-3 text-sm">
                     <div class="text-left">
-                        <label class="block text-red-200 mb-1">Mode d'Analyse</label>
-                        <select id="analysisMode" class="w-full p-2 border border-red-700 rounded-lg bg-red-900 text-white">
+                        <label class="block text-purple-200 mb-1">Mode d'Analyse</label>
+                        <select id="analysisMode" class="w-full p-2 border border-purple-600 rounded-lg bg-purple-800 text-white">
                             <option value="standard" ${currentSettings.analysisMode === 'standard' ? 'selected' : ''}>
                                 Standard (Moyenne simple)
                             </option>
@@ -2147,14 +2121,14 @@
                         </select>
                     </div>
                     <div class="text-left">
-                        <label class="block text-red-200 mb-1">Options d'Analyse</label>
+                        <label class="block text-purple-200 mb-1">Options d'Analyse</label>
                         <div class="space-y-1">
-                            <label class="flex items-center p-1.5 bg-red-900 rounded-lg text-red-200">
+                            <label class="flex items-center p-1.5 bg-purple-800 rounded-lg text-purple-200">
                                 <input type="checkbox" id="excludeExtremes" class="mr-2 h-4 w-4" 
                                     ${currentSettings.excludeExtremes ? 'checked' : ''}>
                                 Exclure les valeurs extrêmes
                             </label>
-                            <label class="flex items-center p-1.5 bg-red-900 rounded-lg text-red-200">
+                            <label class="flex items-center p-1.5 bg-purple-800 rounded-lg text-purple-200">
                                 <input type="checkbox" id="trendAnalysis" class="mr-2 h-4 w-4"
                                     ${currentSettings.trendAnalysis ? 'checked' : ''}>
                                 Analyse tendancielle
@@ -2162,10 +2136,10 @@
                         </div>
                     </div>
                     <div class="text-left">
-                        <label class="block text-red-200 mb-1">Seuil de volatilité</label>
+                        <label class="block text-purple-200 mb-1">Seuil de volatilité</label>
                         <input type="range" id="volatilityThreshold" min="0.05" max="0.5" step="0.01" 
                             value="${currentSettings.volatilityThreshold}" class="w-full">
-                        <div class="text-center text-xs text-red-300 mt-1" id="volatilityValue">
+                        <div class="text-center text-xs text-purple-300 mt-1" id="volatilityValue">
                             ${currentSettings.volatilityThreshold}
                         </div>
                     </div>
@@ -2174,9 +2148,9 @@
             showCancelButton: true,
             confirmButtonText: 'Sauvegarder',
             cancelButtonText: 'Annuler',
-            confirmButtonColor: '#DC2626',
+            confirmButtonColor: '#F59E0B',
             cancelButtonColor: '#EF4444',
-            background: '#7F1D1D',
+            background: '#6D28D9',
             color: 'white',
             didOpen: () => {
                 const slider = document.getElementById('volatilityThreshold');
@@ -2204,7 +2178,7 @@
                     position: 'top',
                     showConfirmButton: false,
                     timer: 1500,
-                    background: '#7F1D1D',
+                    background: '#6D28D9',
                     color: 'white'
                 });
             }
@@ -2215,8 +2189,8 @@
         // Vérifier la licence
         if (!window.isLicenseValid) {
             document.getElementById('intelligentAnalysis').innerHTML = `
-                <div class="text-center text-red-300 p-3">
-                    <i class="fas fa-lock text-2xl text-red-400 mb-2"></i>
+                <div class="text-center text-purple-300 p-3">
+                    <i class="fas fa-lock text-2xl text-purple-400 mb-2"></i>
                     <p>Activez votre licence pour débloquer l'analyse</p>
                 </div>
             `;
@@ -2226,8 +2200,8 @@
         const successfulPredictions = predictionHistory.filter(p => p.status === 'success');
         if (successfulPredictions.length === 0) {
             document.getElementById('intelligentAnalysis').innerHTML = `
-                <div class="text-center text-red-300 p-3 text-xs">
-                    <i class="fas fa-database text-2xl text-red-400 mb-2"></i>
+                <div class="text-center text-purple-300 p-3 text-xs">
+                    <i class="fas fa-database text-2xl text-purple-400 mb-2"></i>
                     Pas encore assez de données pour l'analyse
                 </div>
             `;
@@ -2268,15 +2242,15 @@
 
         document.getElementById('intelligentAnalysis').innerHTML = `
             <div class="space-y-3">
-                <div class="p-2 bg-red-900 rounded-lg border border-red-800">
-                    <div class="font-bold text-red-300 mb-1 text-sm">
+                <div class="p-2 bg-purple-800 rounded-lg border border-purple-700">
+                    <div class="font-bold text-yellow-400 mb-1 text-sm">
                         <i class="fas fa-chart-line mr-1"></i>
                         Performance Moyenne
                     </div>
-                    <p class="text-red-200 text-xs">
+                    <p class="text-yellow-300 text-xs">
                         Taux de réussite: <span class="font-bold">${((successfulPredictions.length / predictionHistory.length) * 100).toFixed(1)}%</span>
                     </p>
-                    <p class="text-red-200 text-xs mt-1">
+                    <p class="text-yellow-300 text-xs mt-1">
                         Confiance moyenne des succès: <span class="font-bold">${avgSuccessConfidence}%</span>
                     </p>
                 </div>
@@ -2290,72 +2264,72 @@
                         Plage optimale: <span class="font-bold">${bestRange}</span>
                     </p>
                     <div class="mt-1">
-                        <p class="text-xs text-red-300 mb-1">Répartition des succès (après marge):</p>
+                        <p class="text-xs text-purple-300 mb-1">Répartition des succès (après marge):</p>
                         <div class="space-y-1">
                             <div class="flex items-center">
-                                <span class="text-xs w-12 text-red-300">1.0-1.5:</span>
-                                <div class="flex-1 bg-red-800 rounded-full h-1.5">
+                                <span class="text-xs w-12 text-purple-300">1.0-1.5:</span>
+                                <div class="flex-1 bg-purple-700 rounded-full h-1.5">
                                     <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['1.0-1.5'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
-                                <span class="text-xs w-6 text-right text-red-200">${oddsRanges['1.0-1.5']}</span>
+                                <span class="text-xs w-6 text-right text-purple-200">${oddsRanges['1.0-1.5']}</span>
                             </div>
                             <div class="flex items-center">
-                                <span class="text-xs w-12 text-red-300">1.5-2.0:</span>
-                                <div class="flex-1 bg-red-800 rounded-full h-1.5">
+                                <span class="text-xs w-12 text-purple-300">1.5-2.0:</span>
+                                <div class="flex-1 bg-purple-700 rounded-full h-1.5">
                                     <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['1.5-2.0'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
-                                <span class="text-xs w-6 text-right text-red-200">${oddsRanges['1.5-2.0']}</span>
+                                <span class="text-xs w-6 text-right text-purple-200">${oddsRanges['1.5-2.0']}</span>
                             </div>
                             <div class="flex items-center">
-                                <span class="text-xs w-12 text-red-300">2.0-2.5:</span>
-                                <div class="flex-1 bg-red-800 rounded-full h-1.5">
+                                <span class="text-xs w-12 text-purple-300">2.0-2.5:</span>
+                                <div class="flex-1 bg-purple-700 rounded-full h-1.5">
                                     <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['2.0-2.5'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
-                                <span class="text-xs w-6 text-right text-red-200">${oddsRanges['2.0-2.5']}</span>
+                                <span class="text-xs w-6 text-right text-purple-200">${oddsRanges['2.0-2.5']}</span>
                             </div>
                             <div class="flex items-center">
-                                <span class="text-xs w-12 text-red-300">2.5+:</span>
-                                <div class="flex-1 bg-red-800 rounded-full h-1.5">
+                                <span class="text-xs w-12 text-purple-300">2.5+:</span>
+                                <div class="flex-1 bg-purple-700 rounded-full h-1.5">
                                     <div class="bg-green-500 h-1.5 rounded-full" style="width: ${(oddsRanges['2.5+'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
-                                <span class="text-xs w-6 text-right text-red-200">${oddsRanges['2.5+']}</span>
+                                <span class="text-xs w-6 text-right text-purple-200">${oddsRanges['2.5+']}</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="p-2 bg-red-900 rounded-lg border border-red-800">
-                    <div class="font-bold text-red-300 mb-1 text-sm">
+                <div class="p-2 bg-purple-800 rounded-lg border border-purple-700">
+                    <div class="font-bold text-yellow-400 mb-1 text-sm">
                         <i class="fas fa-history mr-1"></i>
                         Analyse Historique
                     </div>
-                    <p class="text-red-200 text-xs">
+                    <p class="text-yellow-300 text-xs">
                         <span class="font-bold">${successfulPredictions.length}</span> prédictions réussies sur 
                         <span class="font-bold">${predictionHistory.length}</span> au total
                     </p>
                 </div>
                 
-                <div class="p-2 bg-red-900 rounded-lg border border-red-800">
-                    <div class="font-bold text-red-300 mb-1 text-sm">
+                <div class="p-2 bg-yellow-900 rounded-lg border border-yellow-800">
+                    <div class="font-bold text-yellow-400 mb-1 text-sm">
                         <i class="fas fa-chart-bar mr-1"></i>
                         Meilleur Intervalle de Probabilité
                     </div>
-                    <p class="text-red-200 text-xs">
+                    <p class="text-yellow-300 text-xs">
                         ${percentageRanges.bestRange}% (${percentageRanges.bestCount} succès)
-                        <span class="text-xs text-red-400">
+                        <span class="text-xs text-yellow-400">
                             Taux de réussite: ${percentageRanges.successRate}%
                         </span>
                     </p>
                 </div>
                 
-                <div class="p-2 bg-green-900 rounded-lg border border-green-800">
-                    <div class="font-bold text-green-400 mb-1 text-sm">
+                <div class="p-2 bg-purple-800 rounded-lg border border-purple-700">
+                    <div class="font-bold text-yellow-400 mb-1 text-sm">
                         <i class="fas fa-trophy mr-1"></i>
                         Round le Plus Performant
                     </div>
-                    <p class="text-green-300 text-xs">
+                    <p class="text-yellow-300 text-xs">
                         Round ${roundAnalysis.bestRound} 
-                        <span class="text-xs text-green-400">
+                        <span class="text-xs text-yellow-400">
                             (${roundAnalysis.roundCount} succès sur ${roundAnalysis.totalForRound} prédictions)
                         </span>
                     </p>
@@ -2474,11 +2448,11 @@
             historyContainer.style.display = 'block';
             toggleButton.textContent = 'Masquer';
             toggleButton.classList.remove('bg-green-600');
-            toggleButton.classList.add('bg-red-700');
+            toggleButton.classList.add('bg-purple-700');
         } else {
             historyContainer.style.display = 'none';
             toggleButton.textContent = 'Afficher';
-            toggleButton.classList.remove('bg-red-700');
+            toggleButton.classList.remove('bg-purple-700');
             toggleButton.classList.add('bg-green-600');
         }
     }
@@ -2489,7 +2463,7 @@
         Swal.fire({
             title: 'Êtes-vous sûr?',
             html: `
-                <div class="text-sm text-red-200">
+                <div class="text-sm text-purple-200">
                     <p class="mb-3">Cette action supprimera <strong>TOUT</strong> l'historique des prédictions.</p>
                     <p>Cette action est irréversible.</p>
                 </div>
@@ -2497,11 +2471,11 @@
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444',
-            cancelButtonColor: '#DC2626',
+            cancelButtonColor: '#F59E0B',
             confirmButtonText: 'Oui, supprimer tout!',
             cancelButtonText: 'Annuler',
             reverseButtons: true,
-            background: '#7F1D1D',
+            background: '#6D28D9',
             color: 'white'
         }).then((result) => {
             if (result.isConfirmed) {
@@ -2531,7 +2505,7 @@
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 2000,
-                    background: '#7F1D1D',
+                    background: '#6D28D9',
                     color: 'white'
                 });
             }
