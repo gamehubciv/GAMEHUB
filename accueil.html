@@ -22,7 +22,8 @@
             getDocs,
             addDoc,
             updateDoc,
-            increment
+            increment,
+            onSnapshot
         } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
         
         // Configuration Firebase
@@ -97,7 +98,7 @@
             }
         };
         
-        // Fonction pour enregistrer un achat dans Firestore (AMÉLIORÉE avec expiration)
+        // Fonction pour enregistrer un achat dans Firestore
         window.registerPurchase = async function(gameId, gameName, plan, price) {
             try {
                 const user = auth.currentUser;
@@ -160,7 +161,7 @@
                     status: 'active'
                 });
                 
-                // Ajouter également dans la sous-collection 'purchases' de l'utilisateur pour un accès plus facile
+                // Ajouter également dans la sous-collection 'purchases' de l'utilisateur
                 const userPurchasesRef = collection(db, 'users', user.uid, 'purchases');
                 await addDoc(userPurchasesRef, {
                     gameId: gameId,
@@ -212,7 +213,7 @@
             }
         };
         
-        // Données pour les jeux (utilisées dans l'achat)
+        // Données pour les jeux
         const gamesData = {
             'king-thimbles': { name: 'King Thimbles', type: 'game' },
             'mines': { name: 'Mines', type: 'game' },
@@ -267,7 +268,7 @@
             }
         }
         
-        // Fonction pour vérifier TOUS les jeux achetés depuis Firestore
+        // Fonction pour vérifier TOUS les jeux achetés depuis Firestore - VERSION AMÉLIORÉE
         window.checkAllPurchasedGames = async function() {
             const user = window.auth?.currentUser;
             if (!user) {
@@ -275,36 +276,140 @@
                 return;
             }
 
-            console.log('Vérification des jeux achetés pour:', user.email);
+            console.log('Vérification complète des jeux achetés pour:', user.email);
             
             try {
-                // Récupérer tous les achats de l'utilisateur depuis Firestore
+                // D'abord, réinitialiser tous les jeux à l'état "non acheté"
+                const allGameCards = document.querySelectorAll('.game-card');
+                allGameCards.forEach(card => {
+                    const buyButton = card.querySelector('.buy-button');
+                    const gameId = card.getAttribute('data-game-id');
+                    
+                    if (buyButton) {
+                        // Réinitialiser le bouton à l'état "acheter"
+                        setupBuyButton(card, gameId);
+                        
+                        // Supprimer le badge "Actif" s'il existe
+                        const badge = card.querySelector('.purchased-badge');
+                        if (badge) {
+                            badge.remove();
+                        }
+                    }
+                });
+                
+                // Récupérer tous les achats ACTIFS de l'utilisateur depuis Firestore
                 const userPurchasesRef = collection(db, 'users', user.uid, 'purchases');
                 const q = query(userPurchasesRef, where('status', '==', 'active'));
                 const querySnapshot = await getDocs(q);
                 
                 console.log(`${querySnapshot.size} achat(s) actif(s) trouvé(s)`);
                 
-                // Pour chaque achat, marquer le jeu comme acheté
+                // Pour chaque achat actif, marquer le jeu comme acheté
                 for (const doc of querySnapshot.docs) {
                     const purchaseData = doc.data();
                     const gameId = purchaseData.gameId;
                     const expirationDate = new Date(purchaseData.expirationDate);
+                    const now = new Date();
                     
                     console.log(`Jeu acheté: ${purchaseData.gameName}, Expire: ${expirationDate}`);
                     
-                    // Marquer le jeu comme acheté dans l'interface
-                    const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
-                    if (gameCard) {
-                        window.markGameAsPurchased(gameCard, expirationDate);
+                    // Vérifier si la licence est toujours active
+                    if (expirationDate > now) {
+                        // Marquer le jeu comme acheté dans l'interface
+                        const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
+                        if (gameCard) {
+                            window.markGameAsPurchased(gameCard, expirationDate);
+                        }
+                    } else {
+                        // La licence est expirée, mettre à jour son statut
+                        console.log(`Licence expirée pour ${purchaseData.gameName}`);
+                        await updateDoc(doc.ref, {
+                            status: 'expired',
+                            expiredAt: new Date().toISOString()
+                        });
                     }
                 }
                 
-                // Vérifier aussi les jeux expirés
+                // Vérifier aussi les jeux expirés pour les marquer correctement
                 await checkAndUpdateExpiredLicenses(user.uid);
+                
+                // Maintenant, vérifier tous les jeux (y compris les expirés) pour afficher le bon état
+                const allPurchasesQuery = query(userPurchasesRef);
+                const allPurchasesSnapshot = await getDocs(allPurchasesQuery);
+                
+                console.log(`${allPurchasesSnapshot.size} achat(s) total(s) trouvé(s)`);
+                
+                for (const doc of allPurchasesSnapshot.docs) {
+                    const purchaseData = doc.data();
+                    const gameId = purchaseData.gameId;
+                    const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
+                    
+                    if (gameCard) {
+                        if (purchaseData.status === 'active') {
+                            const expirationDate = new Date(purchaseData.expirationDate);
+                            const now = new Date();
+                            
+                            if (expirationDate > now) {
+                                // Le jeu est actif et non expiré
+                                window.markGameAsPurchased(gameCard, expirationDate);
+                            } else {
+                                // Le jeu est actif mais expiré (anomalie)
+                                console.warn(`Jeu actif mais expiré: ${purchaseData.gameName}`);
+                                await updateDoc(doc.ref, {
+                                    status: 'expired',
+                                    expiredAt: new Date().toISOString()
+                                });
+                                
+                                // Marquer comme expiré dans l'interface
+                                const buyButton = gameCard.querySelector('.buy-button');
+                                if (buyButton) {
+                                    buyButton.innerHTML = `<i class="fas fa-clock"></i> Licence expirée`;
+                                    buyButton.style.background = 'linear-gradient(135deg, var(--expired), #dc3545)';
+                                    buyButton.onclick = (e) => {
+                                        e.stopPropagation();
+                                        showSubscriptionModal(gameId);
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
                 
             } catch (error) {
                 console.error('Erreur lors de la vérification des jeux achetés:', error);
+            }
+        };
+        
+        // Fonction pour rafraîchir l'état d'un jeu spécifique après achat
+        window.refreshGameStatus = async function(gameId) {
+            console.log(`Rafraîchissement du statut pour le jeu: ${gameId}`);
+            
+            const user = window.auth?.currentUser;
+            if (!user) return;
+            
+            try {
+                // Vérifier la licence pour ce jeu spécifique
+                const licenseCheck = await window.checkGameLicense(gameId);
+                const gameCard = document.querySelector(`[data-game-id="${gameId}"]`);
+                
+                if (gameCard) {
+                    if (licenseCheck.hasLicense) {
+                        // Le jeu a une licence active
+                        const expirationDate = licenseCheck.expirationDate;
+                        window.markGameAsPurchased(gameCard, expirationDate);
+                        console.log(`Jeu ${gameId} marqué comme acheté (expire: ${expirationDate})`);
+                    } else {
+                        // Le jeu n'a pas de licence active
+                        setupBuyButton(gameCard, gameId);
+                        console.log(`Jeu ${gameId} marqué comme non acheté`);
+                    }
+                }
+                
+                // Rafraîchir aussi les stats rapides
+                await updateQuickStats(user.uid);
+                
+            } catch (error) {
+                console.error('Erreur lors du rafraîchissement du statut:', error);
             }
         };
         
@@ -332,12 +437,27 @@
                 
                 // Vérifier TOUS les achats de l'utilisateur
                 await window.checkAllPurchasedGames();
+                
+                // Écouter les changements dans les achats de l'utilisateur en temps réel
+                if (user.uid) {
+                    const userPurchasesRef = collection(db, 'users', user.uid, 'purchases');
+                    
+                    // S'abonner aux changements en temps réel
+                    onSnapshot(userPurchasesRef, (snapshot) => {
+                        console.log('Changement détecté dans les achats, mise à jour de l\'interface...');
+                        
+                        // Rafraîchir TOUS les jeux après un changement
+                        setTimeout(async () => {
+                            await window.checkAllPurchasedGames();
+                            await updateQuickStats(user.uid);
+                        }, 500);
+                    });
+                }
             }
         });
         
         // Fonction pour mettre à jour l'interface utilisateur
         async function updateUserUI(user) {
-            // Vous pouvez ajouter ici des mises à jour d'interface si nécessaire
             console.log('Utilisateur connecté:', user.email);
             
             // Mettre à jour les stats rapides
@@ -587,7 +707,7 @@
             margin-bottom: 20px;
         }
 
-        /* Nouvelle Section: Featured Cards - REMPLACE Quick Stats */
+        /* Nouvelle Section: Featured Cards */
         .featured-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -882,9 +1002,10 @@
             font-size: 10px;
             font-weight: 600;
             z-index: 2;
+            animation: fadeInUp 0.5s ease forwards;
         }
 
-        /* Tutoriel Section - NOUVELLE SECTION */
+        /* Tutoriel Section */
         .tutorial-section {
             margin: 0 15px 20px;
         }
@@ -1113,7 +1234,7 @@
             font-size: 18px;
         }
 
-        /* Modal Styles - MODIFICATIONS APPORTÉES */
+        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1673,7 +1794,13 @@
             }
         }
 
-        /* Responsive Design Amélioré */
+        @keyframes pulse-card {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive Design */
 
         /* Tablettes en mode portrait */
         @media (max-width: 768px) {
@@ -2358,7 +2485,7 @@
             <p class="welcome-subtitle">Découvrez les meilleurs bots gaming et maximisez vos gains</p>
         </section>
 
-        <!-- Featured Cards Section (Remplace Quick Stats) -->
+        <!-- Featured Cards Section -->
         <div class="featured-cards">
             <!-- Carte 1: Nouveautés -->
             <div class="featured-card" onclick="window.location.href='jeux.html'">
@@ -2687,7 +2814,7 @@
             </div>
         </div>
 
-        <!-- Tutoriel Section - NOUVELLE SECTION -->
+        <!-- Tutoriel Section -->
         <div class="section-title">
             <span>Tutoriels Vidéo</span>
             <a href="tutoriel.html" class="see-all">Voir tous les tutoriels</a>
@@ -2721,7 +2848,7 @@
         </div>
     </div>
 
-    <!-- Subscription Modal - AMÉLIORÉE -->
+    <!-- Subscription Modal -->
     <div class="modal-overlay" id="subscriptionModal">
         <div class="subscription-modal">
             <div class="modal-header">
@@ -2903,6 +3030,109 @@
         // Configuration Paystack
         const GAMEHUB_BACKEND_URL = "https://backend-gamehub-eynr.onrender.com";
 
+        // Fonction pour configurer le bouton d'achat
+        function setupBuyButton(card, gameId) {
+            const buyButton = card.querySelector('.buy-button');
+            if (buyButton) {
+                buyButton.innerHTML = `<i class="fas fa-shopping-cart"></i> Acheter`;
+                buyButton.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+                buyButton.onclick = (e) => {
+                    e.stopPropagation();
+                    showSubscriptionModal(gameId);
+                };
+                
+                // Retirer le badge s'il existe
+                const existingBadge = card.querySelector('.purchased-badge');
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+            }
+        }
+
+        // Fonction pour marquer un jeu comme déjà acheté - VERSION AMÉLIORÉE
+        window.markGameAsPurchased = function(card, expirationDate) {
+            const buyButton = card.querySelector('.buy-button');
+            const gameId = card.getAttribute('data-game-id');
+            
+            if (!buyButton) return;
+            
+            const now = new Date();
+            const timeDiff = expirationDate - now;
+            
+            // Supprimer tous les anciens badges
+            const oldBadges = card.querySelectorAll('.purchased-badge');
+            oldBadges.forEach(badge => badge.remove());
+            
+            if (timeDiff > 0) {
+                // Licence toujours active
+                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
+                const minutesLeft = Math.ceil(timeDiff / (1000 * 60));
+                
+                let timeText = '';
+                if (daysLeft >= 1) {
+                    timeText = `${daysLeft}j restants`;
+                } else if (hoursLeft >= 1) {
+                    timeText = `${hoursLeft}h restantes`;
+                } else {
+                    timeText = `${minutesLeft}min restantes`;
+                }
+                
+                buyButton.innerHTML = `<i class="fas fa-check"></i> Actif (${timeText})`;
+                buyButton.style.background = 'linear-gradient(135deg, var(--success), #20c997)';
+                buyButton.onclick = (e) => {
+                    e.stopPropagation();
+                    showNotification(
+                        'Licence active',
+                        `Vous avez une licence active pour ce jeu. Elle expire dans ${timeText}.`,
+                        'info',
+                        4000
+                    );
+                };
+                
+                // Créer un nouveau badge "Actif"
+                const badge = document.createElement('div');
+                badge.className = 'purchased-badge';
+                badge.innerHTML = `<i class="fas fa-crown"></i> Actif`;
+                badge.style.display = 'block';
+                badge.style.animation = 'fadeInUp 0.5s ease forwards';
+                card.appendChild(badge);
+                
+                console.log(`Jeu ${gameId} marqué comme ACTIF (${timeText})`);
+                
+            } else {
+                // Licence expirée - réinitialiser à l'état "acheter"
+                setupBuyButton(card, gameId);
+                console.log(`Jeu ${gameId} marqué comme EXPIRÉ, réinitialisé`);
+            }
+        };
+
+        // Fonction pour vérifier périodiquement les licences
+        function startLicenseCheckInterval() {
+            // Vérifier toutes les 30 secondes
+            setInterval(async () => {
+                const user = window.auth?.currentUser;
+                if (user) {
+                    // Vérifier rapidement les licences actives
+                    const gameCards = document.querySelectorAll('.game-card');
+                    
+                    for (const card of gameCards) {
+                        const badge = card.querySelector('.purchased-badge');
+                        if (badge && badge.textContent.includes('Actif')) {
+                            const gameId = card.getAttribute('data-game-id');
+                            const licenseCheck = await window.checkGameLicense(gameId);
+                            
+                            if (!licenseCheck.hasLicense) {
+                                // Licence expirée entre-temps
+                                setupBuyButton(card, gameId);
+                                badge.remove();
+                            }
+                        }
+                    }
+                }
+            }, 30000); // 30 secondes
+        }
+
         // Animation au chargement de la page
         document.addEventListener('DOMContentLoaded', async function() {
             // Animation des sections
@@ -2953,6 +3183,9 @@
                 window.location.href = 'profil.html';
             });
 
+            // Démarrer la vérification périodique des licences
+            setTimeout(startLicenseCheckInterval, 5000);
+
             // Vérifier les paiements récents après un délai
             setTimeout(async () => {
                 await verifierPaiementRecent();
@@ -2996,89 +3229,6 @@
                 'info',
                 4000
             );
-        }
-
-        // Fonction pour marquer un jeu comme déjà acheté (AMÉLIORÉE)
-        window.markGameAsPurchased = function(card, expirationDate) {
-            const buyButton = card.querySelector('.buy-button');
-            const gameId = card.getAttribute('data-game-id');
-            
-            if (buyButton) {
-                const now = new Date();
-                const timeDiff = expirationDate - now;
-                
-                if (timeDiff > 0) {
-                    // Licence toujours active
-                    const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-                    const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
-                    const minutesLeft = Math.ceil(timeDiff / (1000 * 60));
-                    
-                    let timeText = '';
-                    if (daysLeft >= 1) {
-                        timeText = `${daysLeft}j restants`;
-                    } else if (hoursLeft >= 1) {
-                        timeText = `${hoursLeft}h restantes`;
-                    } else {
-                        timeText = `${minutesLeft}min restantes`;
-                    }
-                    
-                    buyButton.innerHTML = `<i class="fas fa-check"></i> Actif (${timeText})`;
-                    buyButton.style.background = 'linear-gradient(135deg, var(--success), #20c997)';
-                    buyButton.onclick = (e) => {
-                        e.stopPropagation();
-                        showNotification(
-                            'Licence active',
-                            `Vous avez une licence active pour ce jeu. Elle expire dans ${timeText}.`,
-                            'info',
-                            4000
-                        );
-                    };
-                    
-                    // Ajouter ou mettre à jour le badge
-                    let badge = card.querySelector('.purchased-badge');
-                    if (!badge) {
-                        badge = document.createElement('div');
-                        badge.className = 'purchased-badge';
-                        card.appendChild(badge);
-                    }
-                    badge.innerHTML = `<i class="fas fa-crown"></i> Actif`;
-                    badge.style.display = 'block';
-                    
-                } else {
-                    // Licence expirée
-                    buyButton.innerHTML = `<i class="fas fa-clock"></i> Licence expirée`;
-                    buyButton.style.background = 'linear-gradient(135deg, var(--expired), #dc3545)';
-                    buyButton.onclick = (e) => {
-                        e.stopPropagation();
-                        showSubscriptionModal(gameId);
-                    };
-                    
-                    // Cacher le badge
-                    const badge = card.querySelector('.purchased-badge');
-                    if (badge) {
-                        badge.style.display = 'none';
-                    }
-                }
-            }
-        };
-
-        // Fonction pour configurer le bouton d'achat
-        function setupBuyButton(card, gameId) {
-            const buyButton = card.querySelector('.buy-button');
-            if (buyButton) {
-                buyButton.innerHTML = `<i class="fas fa-shopping-cart"></i> Acheter`;
-                buyButton.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
-                buyButton.onclick = (e) => {
-                    e.stopPropagation();
-                    showSubscriptionModal(gameId);
-                };
-                
-                // Retirer le badge s'il existe
-                const existingBadge = card.querySelector('.purchased-badge');
-                if (existingBadge) {
-                    existingBadge.remove();
-                }
-            }
         }
 
         // Fonction pour afficher les détails du jeu
@@ -3487,26 +3637,37 @@
                                         6000
                                     );
                                     
-                                    // Marquer le jeu comme acheté
-                                    const gameCard = document.querySelector(`[data-game-id="${purchaseData.gameId}"]`);
-                                    if (gameCard) {
-                                        const expirationDate = new Date();
-                                        switch(purchaseData.plan) {
-                                            case 'trial':
-                                                expirationDate.setHours(expirationDate.getHours() + 1);
-                                                break;
-                                            case 'daily':
-                                                expirationDate.setDate(expirationDate.getDate() + 1);
-                                                break;
-                                            case 'weekly':
-                                                expirationDate.setDate(expirationDate.getDate() + 7);
-                                                break;
-                                            case 'monthly':
-                                                expirationDate.setMonth(expirationDate.getMonth() + 1);
-                                                break;
+                                    // Rafraîchir IMMÉDIATEMENT l'état du jeu acheté
+                                    setTimeout(async () => {
+                                        // 1. Rafraîchir le jeu spécifique
+                                        await window.refreshGameStatus(purchaseData.gameId);
+                                        
+                                        // 2. Rafraîchir TOUS les jeux pour garantir la cohérence
+                                        if (window.checkAllPurchasedGames) {
+                                            await window.checkAllPurchasedGames();
                                         }
-                                        window.markGameAsPurchased(gameCard, expirationDate);
-                                    }
+                                        
+                                        // 3. Vérifier à nouveau la licence pour s'assurer
+                                        const licenseCheck = await window.checkGameLicense(purchaseData.gameId);
+                                        console.log('Vérification finale de licence:', licenseCheck);
+                                        
+                                        // 4. Animation de confirmation
+                                        const gameCard = document.querySelector(`[data-game-id="${purchaseData.gameId}"]`);
+                                        if (gameCard && licenseCheck.hasLicense) {
+                                            gameCard.style.animation = 'pulse-card 2s';
+                                            setTimeout(() => {
+                                                gameCard.style.animation = '';
+                                            }, 2000);
+                                        }
+                                    }, 1000);
+                                    
+                                } else {
+                                    showNotification(
+                                        'Erreur d\'enregistrement',
+                                        'L\'achat a été payé mais n\'a pas pu être enregistré. Contactez le support.',
+                                        'warning',
+                                        5000
+                                    );
                                 }
                             } else {
                                 showNotification(
@@ -3523,11 +3684,6 @@
                         
                         // Nettoyer l'URL
                         window.history.replaceState({}, document.title, window.location.pathname);
-                        
-                        // Recharger les achats pour mettre à jour l'interface
-                        if (window.checkAllPurchasedGames) {
-                            await window.checkAllPurchasedGames();
-                        }
                         
                     } else {
                         showNotification(
