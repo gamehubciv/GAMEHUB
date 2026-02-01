@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 1xBet Prédicteur Pro - Version Premium</title>
+    <title>🚀 Betmomo Prédicteur Pro - Version Premium</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,17 +78,17 @@
             }
         });
 
-        // Vérifier la licence de l'utilisateur pour le jeu 1xbet
+        // Vérifier la licence de l'utilisateur pour le jeu betmomo
         async function checkUserLicense(userId) {
             console.log("Vérification de la licence pour l'utilisateur:", userId);
             
             try {
                 const userPurchasesRef = collection(db, 'users', userId, 'purchases');
                 
-                // Chercher toutes les licences pour '1xbet'
+                // Chercher toutes les licences pour 'betmomo'
                 const q = query(
                     userPurchasesRef,
-                    where('gameId', '==', '1xbet')
+                    where('gameId', '==', 'betmomo')
                 );
                 
                 console.log("Exécution de la requête Firestore...");
@@ -96,8 +96,8 @@
                 console.log("Résultats trouvés:", querySnapshot.size);
                 
                 if (querySnapshot.empty) {
-                    console.log("Aucune licence trouvée pour '1xbet'");
-                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur 1xBet", true);
+                    console.log("Aucune licence trouvée pour 'betmomo'");
+                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur Betmomo", true);
                     window.isLicenseValid = false;
                     disableBotFeatures();
                     return;
@@ -234,7 +234,7 @@
                 top: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(220, 53, 69, 0.95);
+                background: rgba(30, 58, 138, 0.95);
                 color: white;
                 padding: 15px 30px;
                 border-radius: 8px;
@@ -244,13 +244,13 @@
                 text-align: center;
                 max-width: 90%;
                 backdrop-filter: blur(10px);
-                border: 1px solid rgba(220, 53, 69, 0.3);
+                border: 1px solid rgba(30, 58, 138, 0.3);
             `;
             
             messageDiv.innerHTML = `
                 <strong style="font-size: 16px;">${title}</strong><br>
                 <span style="font-size: 14px;">${message}</span>
-                <br><button id="goToStore" style="margin-top: 10px; padding: 8px 16px; background: white; color: #dc3545; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Acheter une licence</button>
+                <br><button id="goToStore" style="margin-top: 10px; padding: 8px 16px; background: #f59e0b; color: #1e293b; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Acheter une licence</button>
             `;
             
             document.body.appendChild(messageDiv);
@@ -373,7 +373,7 @@
                 const remainingMinutes = Math.floor((window.userLicense.remainingTime % (1000 * 60 * 60)) / (1000 * 60));
                 
                 licenseIndicator.innerHTML = `
-                    <span class="bg-blue-500 rounded-full w-2 h-2 inline-block mr-1"></span>
+                    <span class="bg-yellow-500 rounded-full w-2 h-2 inline-block mr-1"></span>
                     <span class="text-white font-medium">Licence: ${remainingHours}h ${remainingMinutes}m</span>
                 `;
             }
@@ -405,12 +405,12 @@
             if (userInfoElement) {
                 userInfoElement.innerHTML = `
                     <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-2 border border-white">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-800 to-blue-900 flex items-center justify-center text-white font-bold mr-2 border border-yellow-500">
                             ${user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="text-left">
                             <p class="text-sm font-medium text-white">${user.email || 'Utilisateur'}</p>
-                            <p class="text-xs text-blue-200">Prédicteur 1xBet Pro</p>
+                            <p class="text-xs text-yellow-300">Prédicteur Betmomo Pro</p>
                         </div>
                     </div>
                 `;
@@ -441,7 +441,9 @@
                     text: 'Votre licence a expiré. Veuillez en acheter une nouvelle.',
                     confirmButtonText: 'Acheter une licence',
                     showCancelButton: true,
-                    cancelButtonText: 'Annuler'
+                    cancelButtonText: 'Annuler',
+                    confirmButtonColor: '#1e3a8a',
+                    cancelButtonColor: '#f59e0b'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = 'accueil.html';
@@ -454,14 +456,16 @@
     </script>
 
     <style>
-        /* Couleurs officielles 1xBet - Bleu */
+        /* Couleurs officielles Betmomo - Bleu foncé avec accents jaune orangé */
         :root {
-            --1xbet-dark-blue: #0a1a3a;
-            --1xbet-blue: #0d2b41;
-            --1xbet-light-blue: #106b81;
-            --1xbet-white: #ffffff;
-            --1xbet-gray: #f5f5f5;
-            --1xbet-black: #111827;
+            --betmomo-dark: #0a1929;
+            --betmomo-blue: #1e3a8a;
+            --betmomo-light-blue: #3b82f6;
+            --betmomo-yellow: #f59e0b;
+            --betmomo-orange: #f97316;
+            --betmomo-white: #ffffff;
+            --betmomo-gray: #f8fafc;
+            --betmomo-light-bg: #e0f2fe;
         }
         
         /* Ajouter les animations pour les messages de licence */
@@ -494,14 +498,15 @@
         
         .coefficient-badge {
             display: inline-block;
-            background: linear-gradient(145deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(145deg, var(--betmomo-blue), var(--betmomo-light-blue));
+            color: var(--betmomo-white);
             border-radius: 9999px;
             padding: 0.25rem 0.75rem;
             font-size: 0.875rem;
             margin: 0.25rem;
             animation: fadeIn 0.3s ease-out;
             font-weight: bold;
+            border: 1px solid var(--betmomo-yellow);
         }
         
         .verification-status {
@@ -514,8 +519,8 @@
         
         .verification-in-progress {
             background-color: #fffbeb;
-            color: #854d0e;
-            border: 1px solid #fde68a;
+            color: #92400e;
+            border: 1px solid #f59e0b;
         }
         
         .verification-success {
@@ -532,8 +537,8 @@
         
         .round-indicator {
             display: inline-block;
-            background: linear-gradient(145deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(145deg, var(--betmomo-blue), var(--betmomo-yellow));
+            color: var(--betmomo-white);
             border-radius: 8px;
             padding: 0.3rem 0.8rem;
             font-weight: bold;
@@ -551,19 +556,39 @@
         }
         
         .stats-card {
-            background: linear-gradient(145deg, #ffffff, var(--1xbet-gray));
+            background: linear-gradient(145deg, #ffffff, var(--betmomo-gray));
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             padding: 1rem;
+            border: 1px solid #e2e8f0;
         }
         
         .robot-header {
-            background: linear-gradient(135deg, var(--1xbet-dark-blue), var(--1xbet-blue));
-            color: white;
+            background: linear-gradient(135deg, var(--betmomo-dark), var(--betmomo-blue));
+            color: var(--betmomo-white);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1rem;
-            border: 3px solid var(--1xbet-light-blue);
+            border: 3px solid var(--betmomo-yellow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .robot-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(245, 158, 11, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
         
         .feature-card {
@@ -571,7 +596,14 @@
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 0.75rem;
-            border: 1px solid var(--1xbet-light-blue);
+            border: 1px solid var(--betmomo-yellow);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-color: var(--betmomo-orange);
         }
         
         @keyframes float {
@@ -584,9 +616,9 @@
         }
         
         @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(16, 107, 129, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(16, 107, 129, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(16, 107, 129, 0.5); }
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
         }
         
         .glowing {
@@ -596,13 +628,13 @@
         .confidence-level {
             height: 10px;
             border-radius: 5px;
-            background: linear-gradient(to right, #ef4444, #f59e0b, #106b81);
+            background: linear-gradient(to right, #ef4444, #f59e0b, #3b82f6);
         }
         
         .confidence-fill {
             height: 100%;
             border-radius: 5px;
-            background: var(--1xbet-blue);
+            background: linear-gradient(to right, var(--betmomo-yellow), var(--betmomo-orange));
             transition: width 1s ease-in-out;
         }
         
@@ -616,18 +648,21 @@
         }
         
         .trend-up {
-            background-color: #dbeafe;
-            color: #1e40af;
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #16a34a;
+            border: 1px solid #86efac;
         }
         
         .trend-down {
-            background-color: #fee2e2;
-            color: #b91c1c;
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+            border: 1px solid #fca5a5;
         }
         
         .trend-stable {
-            background-color: rgba(16, 107, 129, 0.1);
-            color: var(--1xbet-dark-blue);
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+            border: 1px solid #fcd34d;
         }
         
         .pattern-indicator {
@@ -640,25 +675,25 @@
         }
         
         .pattern-bullish {
-            background-color: #dbeafe;
-            color: #1e40af;
-            border-left: 3px solid #106b81;
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #16a34a;
+            border-left: 3px solid #22c55e;
         }
         
         .pattern-bearish {
-            background-color: #fee2e2;
-            color: #b91c1c;
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
             border-left: 3px solid #ef4444;
         }
         
         .pattern-neutral {
-            background-color: rgba(16, 107, 129, 0.1);
-            color: var(--1xbet-dark-blue);
-            border-left: 3px solid var(--1xbet-blue);
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+            border-left: 3px solid var(--betmomo-yellow);
         }
         
         body {
-            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
             min-height: 100vh;
         }
         
@@ -669,26 +704,49 @@
             overflow: hidden;
             transition: transform 0.3s ease;
             padding: 1rem;
+            border: 1px solid #e2e8f0;
         }
         
         .dashboard-card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
         
         .gradient-btn {
-            background: linear-gradient(135deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(135deg, var(--betmomo-blue), var(--betmomo-light-blue));
+            color: var(--betmomo-white);
             border: none;
             border-radius: 10px;
             padding: 10px 20px;
             font-weight: 600;
             transition: all 0.3s ease;
             font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
         }
         
         .gradient-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(16, 107, 129, 0.25);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+            color: var(--betmomo-white);
+            background: linear-gradient(135deg, var(--betmomo-dark), var(--betmomo-blue));
+        }
+        
+        .gradient-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        
+        .gradient-btn:hover::after {
+            animation: shine 0.8s;
         }
         
         .status-badge {
@@ -701,18 +759,21 @@
         }
         
         .status-pending {
-            background: #fffbeb;
-            color: #d97706;
+            background: rgba(245, 158, 11, 0.2);
+            color: #92400e;
+            border: 1px solid #f59e0b;
         }
         
         .status-success {
-            background: #dcfce7;
+            background: rgba(34, 197, 94, 0.2);
             color: #166534;
+            border: 1px solid #86efac;
         }
         
         .status-failed {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.2);
             color: #b91c1c;
+            border: 1px solid #fca5a5;
         }
         
         .validation-container {
@@ -720,7 +781,7 @@
             padding: 1rem;
             background: linear-gradient(145deg, #dbeafe, #bfdbfe);
             border-radius: 10px;
-            border: 1px solid var(--1xbet-light-blue);
+            border: 1px solid var(--betmomo-yellow);
         }
         
         .validation-status {
@@ -734,8 +795,8 @@
         
         .validation-pending {
             background-color: #fffbeb;
-            color: #854d0e;
-            border: 1px solid #fde68a;
+            color: #92400e;
+            border: 1px solid #f59e0b;
         }
         
         .validation-success {
@@ -761,8 +822,8 @@
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            background-color: var(--1xbet-dark-blue);
-            color: white;
+            background-color: var(--betmomo-dark);
+            color: var(--betmomo-white);
             padding: 5px 10px;
             border-radius: 6px;
             font-size: 0.875rem;
@@ -770,6 +831,7 @@
             opacity: 0;
             transition: opacity 0.3s;
             z-index: 10;
+            border: 1px solid var(--betmomo-yellow);
         }
         
         .advanced-input:hover .tooltip {
@@ -820,8 +882,8 @@
         }
         
         .round-notification {
-            background: linear-gradient(145deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(145deg, var(--betmomo-blue), var(--betmomo-yellow));
+            color: var(--betmomo-white);
             padding: 12px;
             border-radius: 10px;
             text-align: center;
@@ -829,10 +891,11 @@
             font-weight: 500;
             font-size: 0.95rem;
             animation: fadeIn 0.5s ease-out;
+            border: 1px solid rgba(245, 158, 11, 0.5);
         }
         
         .margin-info {
-            background: linear-gradient(145deg, var(--1xbet-light-blue), #60a5fa);
+            background: linear-gradient(145deg, var(--betmomo-light-blue), #60a5fa);
             color: #1e3a8a;
             padding: 10px;
             border-radius: 8px;
@@ -840,19 +903,20 @@
             font-size: 0.85rem;
             text-align: center;
             font-weight: 500;
+            border: 1px solid var(--betmomo-yellow);
         }
         
         /* Ajouter un en-tête utilisateur */
         .user-header {
-            background: linear-gradient(135deg, var(--1xbet-dark-blue), var(--1xbet-blue));
-            color: white;
+            background: linear-gradient(135deg, var(--betmomo-dark), var(--betmomo-blue));
+            color: var(--betmomo-white);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 2px solid var(--1xbet-light-blue);
+            border: 2px solid var(--betmomo-yellow);
         }
         
         .license-indicator {
@@ -862,12 +926,14 @@
             font-size: 0.85rem;
             display: flex;
             align-items: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(245, 158, 11, 0.3);
         }
         
         .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--betmomo-white);
+            border: 1px solid rgba(245, 158, 11, 0.5);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
@@ -878,7 +944,9 @@
         }
         
         .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(245, 158, 11, 0.3);
+            color: var(--betmomo-white);
+            transform: translateY(-2px);
         }
         
         @media (max-width: 768px) {
@@ -963,10 +1031,10 @@
             }
         }
         
-        /* Style pour les boutons 1xBet */
-        .btn-1xbet {
-            background: linear-gradient(135deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+        /* Style pour les boutons Betmomo */
+        .btn-betmomo {
+            background: linear-gradient(135deg, var(--betmomo-blue), var(--betmomo-light-blue));
+            color: var(--betmomo-white);
             border: none;
             border-radius: 8px;
             padding: 10px 20px;
@@ -974,28 +1042,30 @@
             transition: all 0.3s ease;
         }
         
-        .btn-1xbet:hover {
-            background: linear-gradient(135deg, var(--1xbet-dark-blue), var(--1xbet-blue));
+        .btn-betmomo:hover {
+            background: linear-gradient(135deg, var(--betmomo-dark), var(--betmomo-blue));
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(10, 26, 58, 0.3);
+            box-shadow: 0 4px 12px rgba(10, 25, 41, 0.3);
+            color: var(--betmomo-white);
         }
         
         /* Style pour les cartes de prédiction */
         .prediction-card {
             background: white;
             border-radius: 12px;
-            border-left: 5px solid var(--1xbet-blue);
+            border-left: 5px solid var(--betmomo-yellow);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         
-        /* Style pour les badges de statut 1xBet */
-        .badge-1xbet {
-            background: var(--1xbet-blue);
-            color: white;
+        /* Style pour les badges de statut Betmomo */
+        .badge-betmomo {
+            background: var(--betmomo-blue);
+            color: var(--betmomo-white);
             padding: 3px 10px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 500;
+            border: 1px solid var(--betmomo-yellow);
         }
         
         /* Animation pour les nouvelles prédictions */
@@ -1008,6 +1078,21 @@
         .new-prediction {
             animation: newPrediction 2s ease-in-out;
         }
+        
+        /* Effet de brillance */
+        @keyframes goldShine {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+        
+        .gold-text {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: goldShine 3s infinite linear;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -1017,11 +1102,11 @@
     <div class="user-header">
         <div id="userInfo" class="flex items-center">
             <div class="animate-pulse">
-                <div class="w-8 h-8 rounded-full bg-blue-300 mr-2 border border-gray-300"></div>
+                <div class="w-8 h-8 rounded-full bg-blue-300 mr-2 border border-yellow-300"></div>
             </div>
             <div>
                 <p class="text-sm font-medium text-white">Vérification en cours...</p>
-                <p class="text-xs text-blue-200">Prédicteur 1xBet Pro</p>
+                <p class="text-xs text-yellow-300">Prédicteur Betmomo Pro</p>
             </div>
         </div>
         
@@ -1043,11 +1128,11 @@
 <div class="container mx-auto px-2 py-4" id="mainApp">
     <div class="robot-header text-center glowing">
         <h1 class="text-3xl font-bold flex items-center justify-center flex-wrap">
-            <img src="https://yt3.googleusercontent.com/ucSSoG24Sto6PguqoCGu1UmLsbe86dbgmfPChr4_rIFWAc8UWzhRYoCM3mzlSZgS0hSQM0Um8TQ=s900-c-k-c0x00ffffff-no-rj" alt="1xBet" class="h-10 mr-3 rounded-lg">
-            <span>🤖 Prédicteur 1xBet Pro</span>
-            <span class="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">V2.0</span>
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgWQQ67DfZ1P8X_phzoLQm08MZ3T99HEM7SGM3gA7Eqm0jjoG0J0TEN1vd&s=10" alt="Betmomo" class="h-10 mr-3 rounded-lg border border-yellow-500">
+            <span class="text-white">🤖 Prédicteur <span class="gold-text">Betmomo</span> Pro</span>
+            <span class="ml-2 bg-yellow-500 text-blue-900 text-xs px-2 py-1 rounded-full font-bold border border-white">V2.0</span>
         </h1>
-        <p class="mt-1 text-blue-100 text-sm">Analyse avancée des côtes avec validation automatique sur 3 rounds</p>
+        <p class="mt-1 text-yellow-300 text-sm">Analyse avancée des côtes avec validation automatique sur 3 rounds</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -1056,35 +1141,35 @@
             <!-- Section Analyse Manuelle -->
             <div class="dashboard-card">
                 <h3 class="text-lg font-bold text-gray-800 mb-3">
-                    <i class="fas fa-chart-line text-blue-600 mr-2"></i>
-                    Analyse des Côtes 1xBet
+                    <i class="fas fa-chart-line text-blue-700 mr-2"></i>
+                    Analyse des Côtes Betmomo
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div class="advanced-input">
                         <label class="block text-gray-700 mb-2 font-semibold text-sm">
-                            <i class="fas fa-list-ol mr-1"></i>
+                            <i class="fas fa-list-ol mr-1 text-yellow-600"></i>
                             Côtes (min. 5, séparées par des virgules)
                         </label>
                         <input 
                             type="text" 
                             id="manualOddsInput" 
                             placeholder="Ex: 1.50, 1.75, 2.00, 1.90, 1.65" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition text-sm"
                             disabled
                         >
                         <div class="tooltip">Entrez au moins 5 côtes séparées par des virgules (pour 1.00, entrez 1.01)</div>
                     </div>
                     <div class="advanced-input">
                         <label class="block text-gray-700 mb-2 font-semibold text-sm">
-                            <i class="fas fa-coins mr-1"></i>
+                            <i class="fas fa-coins mr-1 text-yellow-600"></i>
                             Mise (optionnelle)
                         </label>
                         <input 
                             type="number" 
                             id="manualBetAmount" 
                             placeholder="Montant à miser" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition text-sm"
                             min="0"
                             step="0.01"
                             disabled
@@ -1104,7 +1189,7 @@
                     </button>
                     <button 
                         onclick="openAdvancedSettings()" 
-                        class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[150px]"
+                        class="flex-1 bg-gradient-to-r from-blue-800 to-blue-900 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[150px] border border-yellow-500"
                         disabled
                     >
                         <i class="fas fa-cog mr-2"></i>
@@ -1112,9 +1197,9 @@
                     </button>
                 </div>
                 
-                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-yellow-200">
                     <p class="text-sm text-blue-800 font-medium">
-                        <i class="fas fa-lightbulb mr-2"></i>
+                        <i class="fas fa-lightbulb mr-2 text-yellow-600"></i>
                         Conseil : Pour une précision optimale, entrez les 5 dernières côtes du jeu
                     </p>
                 </div>
@@ -1133,24 +1218,24 @@
         <div>
             <div class="stats-card mb-4">
                 <h3 class="text-lg font-bold text-gray-800 mb-3">
-                    <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                    <i class="fas fa-chart-pie text-blue-700 mr-2"></i>
                     Statistiques Globales
                 </h3>
                 <div id="statsContainer" class="text-center">
-                    <p id="totalPredictions" class="text-2xl font-bold text-blue-600">0</p>
-                    <p id="predictionAccuracy" class="text-xl font-bold text-blue-600 mt-1">0%</p>
+                    <p id="totalPredictions" class="text-2xl font-bold text-blue-700">0</p>
+                    <p id="predictionAccuracy" class="text-xl font-bold text-yellow-600 mt-1">0%</p>
                     <div class="grid grid-cols-3 gap-3 mt-3">
-                        <div class="bg-green-100 p-2 rounded-lg">
+                        <div class="bg-green-100 p-2 rounded-lg border border-green-300">
                             <p class="text-lg font-bold text-green-800">✅</p>
                             <p class="text-xs text-gray-700">Validées</p>
                             <p id="successCount" class="font-bold">0</p>
                         </div>
-                        <div class="bg-red-100 p-2 rounded-lg">
+                        <div class="bg-red-100 p-2 rounded-lg border border-red-300">
                             <p class="text-lg font-bold text-red-800">❌</p>
                             <p class="text-xs text-gray-700">Échouées</p>
                             <p id="failedCount" class="font-bold">0</p>
                         </div>
-                        <div class="bg-yellow-100 p-2 rounded-lg">
+                        <div class="bg-yellow-100 p-2 rounded-lg border border-yellow-300">
                             <p class="text-lg font-bold text-yellow-800">⏳</p>
                             <p class="text-xs text-gray-700">En attente</p>
                             <p id="pendingCount" class="font-bold">0</p>
@@ -1162,10 +1247,10 @@
             <div class="stats-card mb-4">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-brain text-blue-600 mr-2"></i>
+                        <i class="fas fa-brain text-blue-700 mr-2"></i>
                         Analyse Intelligence
                     </h3>
-                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" disabled>
+                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-blue-800 to-blue-900 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition border border-yellow-500" disabled>
                         Actualiser
                     </button>
                 </div>
@@ -1180,14 +1265,14 @@
             <div class="dashboard-card">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-history text-blue-600 mr-2"></i>
+                        <i class="fas fa-history text-blue-700 mr-2"></i>
                         Historique des Prédictions
                     </h3>
                     <div class="flex gap-2">
-                        <button id="toggleHistory" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
+                        <button id="toggleHistory" class="bg-gradient-to-r from-blue-800 to-blue-900 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition border border-yellow-500" onclick="toggleHistoryVisibility()">
                             Masquer
                         </button>
-                        <button id="deleteHistory" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="deleteHistory()">
+                        <button id="deleteHistory" class="bg-gradient-to-r from-red-600 to-red-700 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition border border-yellow-500" onclick="deleteHistory()">
                             <i class="fas fa-trash-alt mr-1"></i>Supprimer
                         </button>
                     </div>
@@ -1206,7 +1291,7 @@
     <!-- Section Fonctionnalités -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
         <div class="feature-card">
-            <div class="text-blue-600 text-2xl mb-2">
+            <div class="text-blue-700 text-2xl mb-2">
                 <i class="fas fa-shield-alt"></i>
             </div>
             <h4 class="font-bold text-base text-gray-800 mb-1">Marge de Sécurité</h4>
@@ -1214,15 +1299,15 @@
         </div>
         
         <div class="feature-card">
-            <div class="text-blue-600 text-2xl mb-2">
+            <div class="text-yellow-600 text-2xl mb-2">
                 <i class="fas fa-robot"></i>
             </div>
             <h4 class="font-bold text-base text-gray-800 mb-1">IA Avancée</h4>
-            <p class="text-gray-600 text-sm">Algorithmes intelligents optimisés pour les jeux 1xBet avec haute précision.</p>
+            <p class="text-gray-600 text-sm">Algorithmes intelligents optimisés pour les jeux Betmomo avec haute précision.</p>
         </div>
         
         <div class="feature-card">
-            <div class="text-blue-600 text-2xl mb-2">
+            <div class="text-blue-700 text-2xl mb-2">
                 <i class="fas fa-chart-line"></i>
             </div>
             <h4 class="font-bold text-base text-gray-800 mb-1">Validation Automatique</h4>
@@ -1483,7 +1568,9 @@
                 text: 'Vous devez avoir une licence active pour utiliser le prédicteur',
                 confirmButtonText: 'Acheter une licence',
                 showCancelButton: true,
-                cancelButtonText: 'Annuler'
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1e3a8a',
+                cancelButtonColor: '#f59e0b'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = 'accueil.html';
@@ -1511,7 +1598,7 @@
                 icon: 'error',
                 title: 'Données Insuffisantes',
                 text: 'Veuillez entrer au moins 5 côtes valides',
-                confirmButtonColor: '#0d2b41'
+                confirmButtonColor: '#1e3a8a'
             });
             return;
         }
@@ -1553,7 +1640,7 @@
                     <p><strong>Prédiction finale (avec marge ${predictionResult.marginPercentage}%):</strong> ${predictionResult.finalOdds}</p>
                     <p class="text-sm text-gray-600">Probabilité: ${predictionResult.probabilities[0]}%</p>
                     <p class="text-sm text-gray-600">Mode: ${settings.analysisMode}</p>
-                    <div class="mt-2 p-2 bg-blue-50 rounded-lg">
+                    <div class="mt-2 p-2 bg-blue-50 rounded-lg border border-yellow-200">
                         <p class="font-semibold text-blue-700">📢 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
                     </div>
                 </div>
@@ -1561,7 +1648,9 @@
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 4000
+            timer: 4000,
+            background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+            color: 'white'
         });
     }
     
@@ -1591,7 +1680,9 @@
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
-                        timer: 3000
+                        timer: 3000,
+                        background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+                        color: 'white'
                     });
                 }
             } else {
@@ -1719,7 +1810,7 @@
             potentialWinHTML = `
                 <div class="mt-4 text-center">
                     <span class="text-sm text-gray-600 block mb-1">Gain Potentiel</span>
-                    <p class="text-2xl font-bold text-blue-600">${prediction.potentialWin} €</p>
+                    <p class="text-2xl font-bold text-yellow-600">${prediction.potentialWin} €</p>
                     <p class="text-xs text-gray-500 mt-1">Pour une mise de ${prediction.betAmount} €</p>
                 </div>
             `;
@@ -1727,19 +1818,19 @@
         
         document.getElementById('result').innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <span class="text-xs text-gray-600 block mb-1">Prédiction Brute</span>
-                    <p class="text-xl font-bold text-blue-600">${prediction.rawOdds}</p>
+                    <p class="text-xl font-bold text-blue-700">${prediction.rawOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-blue-100 rounded-lg">
+                <div class="text-center p-3 bg-gradient-to-r from-blue-100 to-yellow-50 rounded-lg border border-yellow-300">
                     <span class="text-xs text-gray-600 block mb-1">Prédiction Finale</span>
-                    <p class="text-2xl font-bold text-blue-700">${prediction.finalOdds}</p>
+                    <p class="text-2xl font-bold text-blue-800">${prediction.finalOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <span class="text-xs text-gray-600 block mb-1">Probabilité de Réussite</span>
-                    <p class="text-xl font-bold text-blue-600">${prediction.probabilities[0]}%</p>
+                    <p class="text-xl font-bold text-yellow-600">${prediction.probabilities[0]}%</p>
                 </div>
             </div>
             
@@ -1749,10 +1840,10 @@
             <div class="mt-4">
                 <div class="flex justify-between mb-1">
                     <span class="text-sm font-medium text-gray-700">Score de prédiction</span>
-                    <span class="text-sm font-bold text-blue-600">${prediction.globalScore}</span>
+                    <span class="text-sm font-bold text-blue-700">${prediction.globalScore}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${prediction.globalScore * 100}%"></div>
+                    <div class="bg-gradient-to-r from-blue-600 to-yellow-500 h-2 rounded-full" style="width: ${prediction.globalScore * 100}%"></div>
                 </div>
             </div>
             
@@ -1815,12 +1906,12 @@
                                 <p class="font-semibold text-gray-800 text-sm">${prediction.date}</p>
                                 <p class="text-xs text-gray-600">
                                     Prédiction: 
-                                    <span class="font-bold text-blue-600">${prediction.finalOdds}</span> 
+                                    <span class="font-bold text-blue-700">${prediction.finalOdds}</span> 
                                     <span class="text-gray-500 text-xs">(Brute: ${prediction.rawOdds})</span>
                                     <span class="ml-1 text-xs">(${prediction.probabilities[0]}%)</span>
                                 </p>
                                 <p class="text-xs text-gray-500">${prediction.type === 'automatique' ? '⚡ Auto' : '✍️ Manuel'}</p>
-                                <p class="text-xs text-blue-600 font-medium">
+                                <p class="text-xs text-yellow-600 font-medium">
                                     <i class="fas fa-percentage mr-1"></i>Marge: ${prediction.marginPercentage}%
                                 </p>
                             </div>
@@ -1860,7 +1951,7 @@
                         
                         <!-- Statut de vérification pour les prédictions automatiques -->
                         ${isPendingVerification ? `
-                            <div class="mt-2 text-xs bg-orange-50 text-orange-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-orange-50 text-orange-800 p-1.5 rounded border border-orange-300">
                                 <i class="fas fa-sync-alt fa-spin mr-1"></i>
                                 Vérification en cours: 
                                 <span class="font-bold">Round ${pendingInfo.currentRound}/3</span>
@@ -1868,21 +1959,21 @@
                         ` : ''}
                         
                         ${prediction.verificationStatus === 'success' ? `
-                            <div class="mt-2 text-xs bg-green-50 text-green-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-green-50 text-green-800 p-1.5 rounded border border-green-300">
                                 <i class="fas fa-check-circle mr-1"></i>
                                 Validé au Round ${prediction.verifiedRound}
                             </div>
                         ` : ''}
                         
                         ${prediction.verificationStatus === 'failed' ? `
-                            <div class="mt-2 text-xs bg-red-50 text-red-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-red-50 text-red-800 p-1.5 rounded border border-red-300">
                                 <i class="fas fa-times-circle mr-1"></i>
                                 Échoué après 3 rounds
                             </div>
                         ` : ''}
                         
                         ${prediction.betAmount > 0 ? `
-                            <div class="mt-2 text-xs bg-blue-50 text-blue-800 p-1.5 rounded">
+                            <div class="mt-2 text-xs bg-blue-50 text-blue-800 p-1.5 rounded border border-blue-300">
                                 <i class="fas fa-coins mr-1"></i>
                                 Mise: ${prediction.betAmount} € | Gain: ${prediction.potentialWin} €
                             </div>
@@ -1916,9 +2007,10 @@
                         </div>
                     `,
                     confirmButtonText: 'Confirmer',
-                    confirmButtonColor: '#0d2b41',
+                    confirmButtonColor: '#1e3a8a',
                     showCancelButton: true,
                     cancelButtonText: 'Annuler',
+                    cancelButtonColor: '#f59e0b',
                     allowOutsideClick: false
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -1938,7 +2030,9 @@
                             toast: true,
                             position: 'top-end',
                             showConfirmButton: false,
-                            timer: 3000
+                            timer: 3000,
+                            background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+                            color: 'white'
                         });
                     }
                 });
@@ -1978,7 +2072,9 @@
                 text: 'Vous devez avoir une licence active pour accéder aux paramètres',
                 confirmButtonText: 'Acheter une licence',
                 showCancelButton: true,
-                cancelButtonText: 'Annuler'
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1e3a8a',
+                cancelButtonColor: '#f59e0b'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = 'accueil.html';
@@ -2000,7 +2096,7 @@
                 <div class="grid grid-cols-1 gap-3 text-sm">
                     <div class="text-left">
                         <label class="block text-gray-700 mb-1">Mode d'Analyse</label>
-                        <select id="analysisMode" class="w-full p-2 border border-gray-300 rounded-lg">
+                        <select id="analysisMode" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
                             <option value="standard" ${currentSettings.analysisMode === 'standard' ? 'selected' : ''}>
                                 Standard (Moyenne simple)
                             </option>
@@ -2016,12 +2112,12 @@
                         <label class="block text-gray-700 mb-1">Options d'Analyse</label>
                         <div class="space-y-1">
                             <label class="flex items-center p-1.5 bg-gray-50 rounded-lg">
-                                <input type="checkbox" id="excludeExtremes" class="mr-2 h-4 w-4" 
+                                <input type="checkbox" id="excludeExtremes" class="mr-2 h-4 w-4 text-yellow-600" 
                                     ${currentSettings.excludeExtremes ? 'checked' : ''}>
                                 Exclure les valeurs extrêmes
                             </label>
                             <label class="flex items-center p-1.5 bg-gray-50 rounded-lg">
-                                <input type="checkbox" id="trendAnalysis" class="mr-2 h-4 w-4"
+                                <input type="checkbox" id="trendAnalysis" class="mr-2 h-4 w-4 text-yellow-600"
                                     ${currentSettings.trendAnalysis ? 'checked' : ''}>
                                 Analyse tendancielle
                             </label>
@@ -2030,7 +2126,7 @@
                     <div class="text-left">
                         <label class="block text-gray-700 mb-1">Seuil de volatilité</label>
                         <input type="range" id="volatilityThreshold" min="0.05" max="0.5" step="0.01" 
-                            value="${currentSettings.volatilityThreshold}" class="w-full">
+                            value="${currentSettings.volatilityThreshold}" class="w-full accent-yellow-600">
                         <div class="text-center text-xs text-gray-600 mt-1" id="volatilityValue">
                             ${currentSettings.volatilityThreshold}
                         </div>
@@ -2040,8 +2136,8 @@
             showCancelButton: true,
             confirmButtonText: 'Sauvegarder',
             cancelButtonText: 'Annuler',
-            confirmButtonColor: '#0d2b41',
-            cancelButtonColor: '#EF4444',
+            confirmButtonColor: '#1e3a8a',
+            cancelButtonColor: '#f59e0b',
             didOpen: () => {
                 const slider = document.getElementById('volatilityThreshold');
                 const valueDisplay = document.getElementById('volatilityValue');
@@ -2067,7 +2163,9 @@
                     toast: true,
                     position: 'top',
                     showConfirmButton: false,
-                    timer: 1500
+                    timer: 1500,
+                    background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+                    color: 'white'
                 });
             }
         });
@@ -2130,7 +2228,7 @@
 
         document.getElementById('intelligentAnalysis').innerHTML = `
             <div class="space-y-3">
-                <div class="p-2 bg-blue-50 rounded-lg">
+                <div class="p-2 bg-blue-50 rounded-lg border border-blue-200">
                     <div class="font-bold text-blue-800 mb-1 text-sm">
                         <i class="fas fa-chart-line mr-1"></i>
                         Performance Moyenne
@@ -2143,7 +2241,7 @@
                     </p>
                 </div>
                 
-                <div class="p-2 bg-blue-100 rounded-lg">
+                <div class="p-2 bg-gradient-to-r from-blue-50 to-yellow-50 rounded-lg border border-yellow-200">
                     <div class="font-bold text-blue-900 mb-1 text-sm">
                         <i class="fas fa-check-circle mr-1"></i>
                         Meilleures Côtes Finales
@@ -2157,28 +2255,28 @@
                             <div class="flex items-center">
                                 <span class="text-xs w-12">1.0-1.5:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['1.0-1.5'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-gradient-to-r from-blue-600 to-yellow-500 h-1.5 rounded-full" style="width: ${(oddsRanges['1.0-1.5'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['1.0-1.5']}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs w-12">1.5-2.0:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['1.5-2.0'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-gradient-to-r from-blue-600 to-yellow-500 h-1.5 rounded-full" style="width: ${(oddsRanges['1.5-2.0'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['1.5-2.0']}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs w-12">2.0-2.5:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['2.0-2.5'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-gradient-to-r from-blue-600 to-yellow-500 h-1.5 rounded-full" style="width: ${(oddsRanges['2.0-2.5'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['2.0-2.5']}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs w-12">2.5+:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['2.5+'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-gradient-to-r from-blue-600 to-yellow-500 h-1.5 rounded-full" style="width: ${(oddsRanges['2.5+'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['2.5+']}</span>
                             </div>
@@ -2186,7 +2284,7 @@
                     </div>
                 </div>
                 
-                <div class="p-2 bg-blue-50 rounded-lg">
+                <div class="p-2 bg-blue-50 rounded-lg border border-blue-200">
                     <div class="font-bold text-blue-800 mb-1 text-sm">
                         <i class="fas fa-history mr-1"></i>
                         Analyse Historique
@@ -2197,7 +2295,7 @@
                     </p>
                 </div>
                 
-                <div class="p-2 bg-yellow-50 rounded-lg">
+                <div class="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div class="font-bold text-yellow-800 mb-1 text-sm">
                         <i class="fas fa-chart-bar mr-1"></i>
                         Meilleur Intervalle de Probabilité
@@ -2210,7 +2308,7 @@
                     </p>
                 </div>
                 
-                <div class="p-2 bg-orange-50 rounded-lg">
+                <div class="p-2 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
                     <div class="font-bold text-orange-800 mb-1 text-sm">
                         <i class="fas fa-trophy mr-1"></i>
                         Round le Plus Performant
@@ -2335,13 +2433,13 @@
         if (isHistoryVisible) {
             historyContainer.style.display = 'block';
             toggleButton.textContent = 'Masquer';
-            toggleButton.classList.remove('bg-blue-500');
-            toggleButton.classList.add('bg-blue-600');
+            toggleButton.classList.remove('bg-blue-800');
+            toggleButton.classList.add('bg-blue-900');
         } else {
             historyContainer.style.display = 'none';
             toggleButton.textContent = 'Afficher';
-            toggleButton.classList.remove('bg-blue-600');
-            toggleButton.classList.add('bg-blue-500');
+            toggleButton.classList.remove('bg-blue-900');
+            toggleButton.classList.add('bg-blue-800');
         }
     }
     
@@ -2356,7 +2454,9 @@
                 text: 'Vous devez avoir une licence active pour utiliser cette fonctionnalité',
                 confirmButtonText: 'Acheter une licence',
                 showCancelButton: true,
-                cancelButtonText: 'Annuler'
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#1e3a8a',
+                cancelButtonColor: '#f59e0b'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = 'accueil.html';
@@ -2376,7 +2476,7 @@
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444',
-            cancelButtonColor: '#0d2b41',
+            cancelButtonColor: '#1e3a8a',
             confirmButtonText: 'Oui, supprimer tout!',
             cancelButtonText: 'Annuler',
             reverseButtons: true
@@ -2405,7 +2505,9 @@
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
-                    timer: 2000
+                    timer: 2000,
+                    background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
+                    color: 'white'
                 });
             }
         });

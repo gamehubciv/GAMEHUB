@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 1xBet Prédicteur Pro - Version Premium</title>
+    <title>🚀 Betwinner Prédicteur Pro - Version Premium</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -78,17 +78,17 @@
             }
         });
 
-        // Vérifier la licence de l'utilisateur pour le jeu 1xbet
+        // Vérifier la licence de l'utilisateur pour le jeu betwinner
         async function checkUserLicense(userId) {
             console.log("Vérification de la licence pour l'utilisateur:", userId);
             
             try {
                 const userPurchasesRef = collection(db, 'users', userId, 'purchases');
                 
-                // Chercher toutes les licences pour '1xbet'
+                // Chercher toutes les licences pour 'betwinner'
                 const q = query(
                     userPurchasesRef,
-                    where('gameId', '==', '1xbet')
+                    where('gameId', '==', 'betwinner')
                 );
                 
                 console.log("Exécution de la requête Firestore...");
@@ -96,8 +96,8 @@
                 console.log("Résultats trouvés:", querySnapshot.size);
                 
                 if (querySnapshot.empty) {
-                    console.log("Aucune licence trouvée pour '1xbet'");
-                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur 1xBet", true);
+                    console.log("Aucune licence trouvée pour 'betwinner'");
+                    showLicenseMessage("Licence non trouvée", "Vous n'avez pas acheté le prédicteur Betwinner", true);
                     window.isLicenseValid = false;
                     disableBotFeatures();
                     return;
@@ -308,7 +308,7 @@
             if (licenseIndicator) {
                 licenseIndicator.innerHTML = `
                     <span class="bg-red-500 rounded-full w-2 h-2 inline-block mr-1"></span>
-                    <span class="text-white font-medium">Licence expirée</span>
+                    <span class="text-yellow-100 font-medium">Licence expirée</span>
                 `;
             }
             
@@ -317,7 +317,7 @@
             if (resultElement) {
                 resultElement.innerHTML = `
                     <div class="text-center p-4">
-                        <i class="fas fa-key text-3xl text-blue-400 mb-3"></i>
+                        <i class="fas fa-key text-3xl text-yellow-400 mb-3"></i>
                         <p class="text-gray-600">Le prédicteur est verrouillé</p>
                         <p class="text-sm text-gray-500 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
                     </div>
@@ -373,8 +373,8 @@
                 const remainingMinutes = Math.floor((window.userLicense.remainingTime % (1000 * 60 * 60)) / (1000 * 60));
                 
                 licenseIndicator.innerHTML = `
-                    <span class="bg-blue-500 rounded-full w-2 h-2 inline-block mr-1"></span>
-                    <span class="text-white font-medium">Licence: ${remainingHours}h ${remainingMinutes}m</span>
+                    <span class="bg-yellow-500 rounded-full w-2 h-2 inline-block mr-1"></span>
+                    <span class="text-yellow-100 font-medium">Licence: ${remainingHours}h ${remainingMinutes}m</span>
                 `;
             }
             
@@ -405,12 +405,12 @@
             if (userInfoElement) {
                 userInfoElement.innerHTML = `
                     <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-2 border border-white">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-green-700 to-green-900 flex items-center justify-center text-yellow-100 font-bold mr-2 border border-yellow-300">
                             ${user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div class="text-left">
-                            <p class="text-sm font-medium text-white">${user.email || 'Utilisateur'}</p>
-                            <p class="text-xs text-blue-200">Prédicteur 1xBet Pro</p>
+                            <p class="text-sm font-medium text-yellow-100">${user.email || 'Utilisateur'}</p>
+                            <p class="text-xs text-yellow-200">Prédicteur Betwinner Pro</p>
                         </div>
                     </div>
                 `;
@@ -454,14 +454,16 @@
     </script>
 
     <style>
-        /* Couleurs officielles 1xBet - Bleu */
+        /* Couleurs officielles Betwinner - Vert foncé avec texte jaune/blanc */
         :root {
-            --1xbet-dark-blue: #0a1a3a;
-            --1xbet-blue: #0d2b41;
-            --1xbet-light-blue: #106b81;
-            --1xbet-white: #ffffff;
-            --1xbet-gray: #f5f5f5;
-            --1xbet-black: #111827;
+            --betwinner-dark-green: #0a3a1a;
+            --betwinner-green: #0d6b2b;
+            --betwinner-light-green: #10b954;
+            --betwinner-yellow: #FFD700;
+            --betwinner-light-yellow: #FFF8DC;
+            --betwinner-white: #ffffff;
+            --betwinner-gray: #f5f5f5;
+            --betwinner-black: #111827;
         }
         
         /* Ajouter les animations pour les messages de licence */
@@ -494,14 +496,15 @@
         
         .coefficient-badge {
             display: inline-block;
-            background: linear-gradient(145deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(145deg, var(--betwinner-green), var(--betwinner-light-green));
+            color: var(--betwinner-yellow);
             border-radius: 9999px;
             padding: 0.25rem 0.75rem;
             font-size: 0.875rem;
             margin: 0.25rem;
             animation: fadeIn 0.3s ease-out;
             font-weight: bold;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         .verification-status {
@@ -532,13 +535,14 @@
         
         .round-indicator {
             display: inline-block;
-            background: linear-gradient(145deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(145deg, var(--betwinner-green), var(--betwinner-light-green));
+            color: var(--betwinner-yellow);
             border-radius: 8px;
             padding: 0.3rem 0.8rem;
             font-weight: bold;
             font-size: 0.9rem;
             margin: 0.1rem;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         .history-item {
@@ -551,27 +555,27 @@
         }
         
         .stats-card {
-            background: linear-gradient(145deg, #ffffff, var(--1xbet-gray));
+            background: linear-gradient(145deg, #ffffff, var(--betwinner-gray));
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             padding: 1rem;
         }
         
         .robot-header {
-            background: linear-gradient(135deg, var(--1xbet-dark-blue), var(--1xbet-blue));
-            color: white;
+            background: linear-gradient(135deg, var(--betwinner-dark-green), var(--betwinner-green));
+            color: var(--betwinner-yellow);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1rem;
-            border: 3px solid var(--1xbet-light-blue);
+            border: 3px solid var(--betwinner-yellow);
         }
         
         .feature-card {
-            background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+            background: linear-gradient(145deg, #e6f7e6, #c2f0c2);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 0.75rem;
-            border: 1px solid var(--1xbet-light-blue);
+            border: 1px solid var(--betwinner-light-green);
         }
         
         @keyframes float {
@@ -584,9 +588,9 @@
         }
         
         @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(16, 107, 129, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(16, 107, 129, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(16, 107, 129, 0.5); }
+            0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
         }
         
         .glowing {
@@ -596,13 +600,13 @@
         .confidence-level {
             height: 10px;
             border-radius: 5px;
-            background: linear-gradient(to right, #ef4444, #f59e0b, #106b81);
+            background: linear-gradient(to right, #ef4444, #f59e0b, #10b954);
         }
         
         .confidence-fill {
             height: 100%;
             border-radius: 5px;
-            background: var(--1xbet-blue);
+            background: var(--betwinner-green);
             transition: width 1s ease-in-out;
         }
         
@@ -616,8 +620,8 @@
         }
         
         .trend-up {
-            background-color: #dbeafe;
-            color: #1e40af;
+            background-color: #e6f7e6;
+            color: #166534;
         }
         
         .trend-down {
@@ -626,8 +630,8 @@
         }
         
         .trend-stable {
-            background-color: rgba(16, 107, 129, 0.1);
-            color: var(--1xbet-dark-blue);
+            background-color: rgba(16, 185, 84, 0.1);
+            color: var(--betwinner-dark-green);
         }
         
         .pattern-indicator {
@@ -640,9 +644,9 @@
         }
         
         .pattern-bullish {
-            background-color: #dbeafe;
-            color: #1e40af;
-            border-left: 3px solid #106b81;
+            background-color: #e6f7e6;
+            color: #166534;
+            border-left: 3px solid var(--betwinner-light-green);
         }
         
         .pattern-bearish {
@@ -652,13 +656,13 @@
         }
         
         .pattern-neutral {
-            background-color: rgba(16, 107, 129, 0.1);
-            color: var(--1xbet-dark-blue);
-            border-left: 3px solid var(--1xbet-blue);
+            background-color: rgba(16, 185, 84, 0.1);
+            color: var(--betwinner-dark-green);
+            border-left: 3px solid var(--betwinner-green);
         }
         
         body {
-            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            background: linear-gradient(135deg, #e6f7e6, #c2f0c2);
             min-height: 100vh;
         }
         
@@ -676,9 +680,9 @@
         }
         
         .gradient-btn {
-            background: linear-gradient(135deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
-            border: none;
+            background: linear-gradient(135deg, var(--betwinner-green), var(--betwinner-light-green));
+            color: var(--betwinner-yellow);
+            border: 1px solid var(--betwinner-yellow);
             border-radius: 10px;
             padding: 10px 20px;
             font-weight: 600;
@@ -688,7 +692,8 @@
         
         .gradient-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(16, 107, 129, 0.25);
+            box-shadow: 0 4px 8px rgba(10, 90, 58, 0.25);
+            color: var(--betwinner-light-yellow);
         }
         
         .status-badge {
@@ -718,9 +723,9 @@
         .validation-container {
             margin-top: 1.2rem;
             padding: 1rem;
-            background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+            background: linear-gradient(145deg, #e6f7e6, #c2f0c2);
             border-radius: 10px;
-            border: 1px solid var(--1xbet-light-blue);
+            border: 1px solid var(--betwinner-light-green);
         }
         
         .validation-status {
@@ -761,8 +766,8 @@
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            background-color: var(--1xbet-dark-blue);
-            color: white;
+            background-color: var(--betwinner-dark-green);
+            color: var(--betwinner-yellow);
             padding: 5px 10px;
             border-radius: 6px;
             font-size: 0.875rem;
@@ -770,6 +775,7 @@
             opacity: 0;
             transition: opacity 0.3s;
             z-index: 10;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         .advanced-input:hover .tooltip {
@@ -820,8 +826,8 @@
         }
         
         .round-notification {
-            background: linear-gradient(145deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
+            background: linear-gradient(145deg, var(--betwinner-green), var(--betwinner-light-green));
+            color: var(--betwinner-yellow);
             padding: 12px;
             border-radius: 10px;
             text-align: center;
@@ -829,45 +835,48 @@
             font-weight: 500;
             font-size: 0.95rem;
             animation: fadeIn 0.5s ease-out;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         .margin-info {
-            background: linear-gradient(145deg, var(--1xbet-light-blue), #60a5fa);
-            color: #1e3a8a;
+            background: linear-gradient(145deg, var(--betwinner-light-green), #34d399);
+            color: #064e3b;
             padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
             font-size: 0.85rem;
             text-align: center;
             font-weight: 500;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         /* Ajouter un en-tête utilisateur */
         .user-header {
-            background: linear-gradient(135deg, var(--1xbet-dark-blue), var(--1xbet-blue));
-            color: white;
+            background: linear-gradient(135deg, var(--betwinner-dark-green), var(--betwinner-green));
+            color: var(--betwinner-yellow);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 2px solid var(--1xbet-light-blue);
+            border: 2px solid var(--betwinner-yellow);
         }
         
         .license-indicator {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 215, 0, 0.2);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--betwinner-yellow);
+            border: 1px solid var(--betwinner-yellow);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
@@ -878,7 +887,8 @@
         }
         
         .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 215, 0, 0.3);
+            color: var(--betwinner-light-yellow);
         }
         
         @media (max-width: 768px) {
@@ -963,45 +973,47 @@
             }
         }
         
-        /* Style pour les boutons 1xBet */
-        .btn-1xbet {
-            background: linear-gradient(135deg, var(--1xbet-blue), var(--1xbet-light-blue));
-            color: white;
-            border: none;
+        /* Style pour les boutons Betwinner */
+        .btn-betwinner {
+            background: linear-gradient(135deg, var(--betwinner-green), var(--betwinner-light-green));
+            color: var(--betwinner-yellow);
+            border: 1px solid var(--betwinner-yellow);
             border-radius: 8px;
             padding: 10px 20px;
             font-weight: 600;
             transition: all 0.3s ease;
         }
         
-        .btn-1xbet:hover {
-            background: linear-gradient(135deg, var(--1xbet-dark-blue), var(--1xbet-blue));
+        .btn-betwinner:hover {
+            background: linear-gradient(135deg, var(--betwinner-dark-green), var(--betwinner-green));
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(10, 26, 58, 0.3);
+            box-shadow: 0 4px 12px rgba(10, 58, 26, 0.3);
+            color: var(--betwinner-light-yellow);
         }
         
         /* Style pour les cartes de prédiction */
         .prediction-card {
             background: white;
             border-radius: 12px;
-            border-left: 5px solid var(--1xbet-blue);
+            border-left: 5px solid var(--betwinner-green);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         
-        /* Style pour les badges de statut 1xBet */
-        .badge-1xbet {
-            background: var(--1xbet-blue);
-            color: white;
+        /* Style pour les badges de statut Betwinner */
+        .badge-betwinner {
+            background: var(--betwinner-green);
+            color: var(--betwinner-yellow);
             padding: 3px 10px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 500;
+            border: 1px solid var(--betwinner-yellow);
         }
         
         /* Animation pour les nouvelles prédictions */
         @keyframes newPrediction {
-            0% { background-color: #dbeafe; }
-            50% { background-color: #bfdbfe; }
+            0% { background-color: #e6f7e6; }
+            50% { background-color: #c2f0c2; }
             100% { background-color: white; }
         }
         
@@ -1017,18 +1029,18 @@
     <div class="user-header">
         <div id="userInfo" class="flex items-center">
             <div class="animate-pulse">
-                <div class="w-8 h-8 rounded-full bg-blue-300 mr-2 border border-gray-300"></div>
+                <div class="w-8 h-8 rounded-full bg-green-300 mr-2 border border-yellow-300"></div>
             </div>
             <div>
-                <p class="text-sm font-medium text-white">Vérification en cours...</p>
-                <p class="text-xs text-blue-200">Prédicteur 1xBet Pro</p>
+                <p class="text-sm font-medium text-yellow-100">Vérification en cours...</p>
+                <p class="text-xs text-yellow-200">Prédicteur Betwinner Pro</p>
             </div>
         </div>
         
         <div class="flex items-center space-x-3">
             <div id="licenseIndicator" class="license-indicator">
                 <span class="bg-yellow-500 rounded-full w-2 h-2 inline-block mr-1 animate-pulse"></span>
-                <span class="text-white">Vérification licence...</span>
+                <span class="text-yellow-100">Vérification licence...</span>
             </div>
             
             <button onclick="logoutUser()" class="logout-btn">
@@ -1043,11 +1055,11 @@
 <div class="container mx-auto px-2 py-4" id="mainApp">
     <div class="robot-header text-center glowing">
         <h1 class="text-3xl font-bold flex items-center justify-center flex-wrap">
-            <img src="https://yt3.googleusercontent.com/ucSSoG24Sto6PguqoCGu1UmLsbe86dbgmfPChr4_rIFWAc8UWzhRYoCM3mzlSZgS0hSQM0Um8TQ=s900-c-k-c0x00ffffff-no-rj" alt="1xBet" class="h-10 mr-3 rounded-lg">
-            <span>🤖 Prédicteur 1xBet Pro</span>
-            <span class="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">V2.0</span>
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZds1hih3Ln90WQvI5srOk-9zXvO3ckbRPqXKXY7pHDFu3ORye8v1MhFI&s=10" alt="Betwinner" class="h-10 mr-3 rounded-lg">
+            <span>🤖 Prédicteur Betwinner Pro</span>
+            <span class="ml-2 bg-yellow-500 text-green-900 text-xs px-2 py-1 rounded-full font-bold">V2.0</span>
         </h1>
-        <p class="mt-1 text-blue-100 text-sm">Analyse avancée des côtes avec validation automatique sur 3 rounds</p>
+        <p class="mt-1 text-yellow-100 text-sm">Analyse avancée des côtes avec validation automatique sur 3 rounds</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -1056,8 +1068,8 @@
             <!-- Section Analyse Manuelle -->
             <div class="dashboard-card">
                 <h3 class="text-lg font-bold text-gray-800 mb-3">
-                    <i class="fas fa-chart-line text-blue-600 mr-2"></i>
-                    Analyse des Côtes 1xBet
+                    <i class="fas fa-chart-line text-green-700 mr-2"></i>
+                    Analyse des Côtes Betwinner
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1070,7 +1082,7 @@
                             type="text" 
                             id="manualOddsInput" 
                             placeholder="Ex: 1.50, 1.75, 2.00, 1.90, 1.65" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-sm"
                             disabled
                         >
                         <div class="tooltip">Entrez au moins 5 côtes séparées par des virgules (pour 1.00, entrez 1.01)</div>
@@ -1084,7 +1096,7 @@
                             type="number" 
                             id="manualBetAmount" 
                             placeholder="Montant à miser" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition text-sm"
                             min="0"
                             step="0.01"
                             disabled
@@ -1104,7 +1116,7 @@
                     </button>
                     <button 
                         onclick="openAdvancedSettings()" 
-                        class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[150px]"
+                        class="flex-1 bg-gradient-to-r from-green-600 to-green-800 text-yellow-100 py-2 rounded-lg hover:opacity-90 transition font-semibold text-sm min-w-[150px] border border-yellow-300"
                         disabled
                     >
                         <i class="fas fa-cog mr-2"></i>
@@ -1112,8 +1124,8 @@
                     </button>
                 </div>
                 
-                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p class="text-sm text-blue-800 font-medium">
+                <div class="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <p class="text-sm text-green-800 font-medium">
                         <i class="fas fa-lightbulb mr-2"></i>
                         Conseil : Pour une précision optimale, entrez les 5 dernières côtes du jeu
                     </p>
@@ -1121,7 +1133,7 @@
                 
                 <div id="result" class="bg-gray-50 rounded-lg p-4 mt-4 border border-gray-200">
                     <div class="text-center p-4">
-                        <i class="fas fa-key text-3xl text-blue-400 mb-3"></i>
+                        <i class="fas fa-key text-3xl text-yellow-500 mb-3"></i>
                         <p class="text-gray-600">Le prédicteur est verrouillé</p>
                         <p class="text-sm text-gray-500 mt-1">Activez votre licence pour débloquer toutes les fonctionnalités</p>
                     </div>
@@ -1133,12 +1145,12 @@
         <div>
             <div class="stats-card mb-4">
                 <h3 class="text-lg font-bold text-gray-800 mb-3">
-                    <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                    <i class="fas fa-chart-pie text-green-700 mr-2"></i>
                     Statistiques Globales
                 </h3>
                 <div id="statsContainer" class="text-center">
-                    <p id="totalPredictions" class="text-2xl font-bold text-blue-600">0</p>
-                    <p id="predictionAccuracy" class="text-xl font-bold text-blue-600 mt-1">0%</p>
+                    <p id="totalPredictions" class="text-2xl font-bold text-green-700">0</p>
+                    <p id="predictionAccuracy" class="text-xl font-bold text-green-700 mt-1">0%</p>
                     <div class="grid grid-cols-3 gap-3 mt-3">
                         <div class="bg-green-100 p-2 rounded-lg">
                             <p class="text-lg font-bold text-green-800">✅</p>
@@ -1162,10 +1174,10 @@
             <div class="stats-card mb-4">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-brain text-blue-600 mr-2"></i>
+                        <i class="fas fa-brain text-green-700 mr-2"></i>
                         Analyse Intelligence
                     </h3>
-                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" disabled>
+                    <button onclick="analyzeHistoricalData()" class="bg-gradient-to-r from-green-600 to-green-800 text-yellow-100 px-2 py-1 rounded-lg text-xs hover:opacity-90 transition border border-yellow-300" disabled>
                         Actualiser
                     </button>
                 </div>
@@ -1180,11 +1192,11 @@
             <div class="dashboard-card">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-lg font-bold text-gray-800">
-                        <i class="fas fa-history text-blue-600 mr-2"></i>
+                        <i class="fas fa-history text-green-700 mr-2"></i>
                         Historique des Prédictions
                     </h3>
                     <div class="flex gap-2">
-                        <button id="toggleHistory" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="toggleHistoryVisibility()">
+                        <button id="toggleHistory" class="bg-gradient-to-r from-green-600 to-green-800 text-yellow-100 px-2 py-1 rounded-lg text-xs hover:opacity-90 transition border border-yellow-300" onclick="toggleHistoryVisibility()">
                             Masquer
                         </button>
                         <button id="deleteHistory" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-2 py-1 rounded-lg text-xs hover:opacity-90 transition" onclick="deleteHistory()">
@@ -1206,7 +1218,7 @@
     <!-- Section Fonctionnalités -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
         <div class="feature-card">
-            <div class="text-blue-600 text-2xl mb-2">
+            <div class="text-green-700 text-2xl mb-2">
                 <i class="fas fa-shield-alt"></i>
             </div>
             <h4 class="font-bold text-base text-gray-800 mb-1">Marge de Sécurité</h4>
@@ -1214,15 +1226,15 @@
         </div>
         
         <div class="feature-card">
-            <div class="text-blue-600 text-2xl mb-2">
+            <div class="text-green-700 text-2xl mb-2">
                 <i class="fas fa-robot"></i>
             </div>
             <h4 class="font-bold text-base text-gray-800 mb-1">IA Avancée</h4>
-            <p class="text-gray-600 text-sm">Algorithmes intelligents optimisés pour les jeux 1xBet avec haute précision.</p>
+            <p class="text-gray-600 text-sm">Algorithmes intelligents optimisés pour les jeux Betwinner avec haute précision.</p>
         </div>
         
         <div class="feature-card">
-            <div class="text-blue-600 text-2xl mb-2">
+            <div class="text-green-700 text-2xl mb-2">
                 <i class="fas fa-chart-line"></i>
             </div>
             <h4 class="font-bold text-base text-gray-800 mb-1">Validation Automatique</h4>
@@ -1511,7 +1523,7 @@
                 icon: 'error',
                 title: 'Données Insuffisantes',
                 text: 'Veuillez entrer au moins 5 côtes valides',
-                confirmButtonColor: '#0d2b41'
+                confirmButtonColor: '#0d6b2b'
             });
             return;
         }
@@ -1553,8 +1565,8 @@
                     <p><strong>Prédiction finale (avec marge ${predictionResult.marginPercentage}%):</strong> ${predictionResult.finalOdds}</p>
                     <p class="text-sm text-gray-600">Probabilité: ${predictionResult.probabilities[0]}%</p>
                     <p class="text-sm text-gray-600">Mode: ${settings.analysisMode}</p>
-                    <div class="mt-2 p-2 bg-blue-50 rounded-lg">
-                        <p class="font-semibold text-blue-700">📢 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
+                    <div class="mt-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                        <p class="font-semibold text-green-700">📢 La prédiction finale de ${predictionResult.finalOdds} devrait apparaître dans l'un des 3 rounds suivants</p>
                     </div>
                 </div>
             `,
@@ -1719,7 +1731,7 @@
             potentialWinHTML = `
                 <div class="mt-4 text-center">
                     <span class="text-sm text-gray-600 block mb-1">Gain Potentiel</span>
-                    <p class="text-2xl font-bold text-blue-600">${prediction.potentialWin} €</p>
+                    <p class="text-2xl font-bold text-green-700">${prediction.potentialWin} €</p>
                     <p class="text-xs text-gray-500 mt-1">Pour une mise de ${prediction.betAmount} €</p>
                 </div>
             `;
@@ -1727,19 +1739,19 @@
         
         document.getElementById('result').innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-center p-3 bg-green-50 rounded-lg">
                     <span class="text-xs text-gray-600 block mb-1">Prédiction Brute</span>
-                    <p class="text-xl font-bold text-blue-600">${prediction.rawOdds}</p>
+                    <p class="text-xl font-bold text-green-700">${prediction.rawOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-blue-100 rounded-lg">
+                <div class="text-center p-3 bg-green-100 rounded-lg">
                     <span class="text-xs text-gray-600 block mb-1">Prédiction Finale</span>
-                    <p class="text-2xl font-bold text-blue-700">${prediction.finalOdds}</p>
+                    <p class="text-2xl font-bold text-green-800">${prediction.finalOdds}</p>
                 </div>
                 
-                <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <div class="text-center p-3 bg-green-50 rounded-lg">
                     <span class="text-xs text-gray-600 block mb-1">Probabilité de Réussite</span>
-                    <p class="text-xl font-bold text-blue-600">${prediction.probabilities[0]}%</p>
+                    <p class="text-xl font-bold text-green-700">${prediction.probabilities[0]}%</p>
                 </div>
             </div>
             
@@ -1749,10 +1761,10 @@
             <div class="mt-4">
                 <div class="flex justify-between mb-1">
                     <span class="text-sm font-medium text-gray-700">Score de prédiction</span>
-                    <span class="text-sm font-bold text-blue-600">${prediction.globalScore}</span>
+                    <span class="text-sm font-bold text-green-700">${prediction.globalScore}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${prediction.globalScore * 100}%"></div>
+                    <div class="bg-green-700 h-2 rounded-full" style="width: ${prediction.globalScore * 100}%"></div>
                 </div>
             </div>
             
@@ -1815,12 +1827,12 @@
                                 <p class="font-semibold text-gray-800 text-sm">${prediction.date}</p>
                                 <p class="text-xs text-gray-600">
                                     Prédiction: 
-                                    <span class="font-bold text-blue-600">${prediction.finalOdds}</span> 
+                                    <span class="font-bold text-green-700">${prediction.finalOdds}</span> 
                                     <span class="text-gray-500 text-xs">(Brute: ${prediction.rawOdds})</span>
                                     <span class="ml-1 text-xs">(${prediction.probabilities[0]}%)</span>
                                 </p>
                                 <p class="text-xs text-gray-500">${prediction.type === 'automatique' ? '⚡ Auto' : '✍️ Manuel'}</p>
-                                <p class="text-xs text-blue-600 font-medium">
+                                <p class="text-xs text-green-700 font-medium">
                                     <i class="fas fa-percentage mr-1"></i>Marge: ${prediction.marginPercentage}%
                                 </p>
                             </div>
@@ -1916,7 +1928,7 @@
                         </div>
                     `,
                     confirmButtonText: 'Confirmer',
-                    confirmButtonColor: '#0d2b41',
+                    confirmButtonColor: '#0d6b2b',
                     showCancelButton: true,
                     cancelButtonText: 'Annuler',
                     allowOutsideClick: false
@@ -2040,7 +2052,7 @@
             showCancelButton: true,
             confirmButtonText: 'Sauvegarder',
             cancelButtonText: 'Annuler',
-            confirmButtonColor: '#0d2b41',
+            confirmButtonColor: '#0d6b2b',
             cancelButtonColor: '#EF4444',
             didOpen: () => {
                 const slider = document.getElementById('volatilityThreshold');
@@ -2130,25 +2142,25 @@
 
         document.getElementById('intelligentAnalysis').innerHTML = `
             <div class="space-y-3">
-                <div class="p-2 bg-blue-50 rounded-lg">
-                    <div class="font-bold text-blue-800 mb-1 text-sm">
+                <div class="p-2 bg-green-50 rounded-lg">
+                    <div class="font-bold text-green-800 mb-1 text-sm">
                         <i class="fas fa-chart-line mr-1"></i>
                         Performance Moyenne
                     </div>
-                    <p class="text-blue-600 text-xs">
+                    <p class="text-green-700 text-xs">
                         Taux de réussite: <span class="font-bold">${((successfulPredictions.length / predictionHistory.length) * 100).toFixed(1)}%</span>
                     </p>
-                    <p class="text-blue-600 text-xs mt-1">
+                    <p class="text-green-700 text-xs mt-1">
                         Confiance moyenne des succès: <span class="font-bold">${avgSuccessConfidence}%</span>
                     </p>
                 </div>
                 
-                <div class="p-2 bg-blue-100 rounded-lg">
-                    <div class="font-bold text-blue-900 mb-1 text-sm">
+                <div class="p-2 bg-green-100 rounded-lg">
+                    <div class="font-bold text-green-900 mb-1 text-sm">
                         <i class="fas fa-check-circle mr-1"></i>
                         Meilleures Côtes Finales
                     </div>
-                    <p class="text-blue-800 text-xs">
+                    <p class="text-green-800 text-xs">
                         Plage optimale: <span class="font-bold">${bestRange}</span>
                     </p>
                     <div class="mt-1">
@@ -2157,28 +2169,28 @@
                             <div class="flex items-center">
                                 <span class="text-xs w-12">1.0-1.5:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['1.0-1.5'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-green-700 h-1.5 rounded-full" style="width: ${(oddsRanges['1.0-1.5'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['1.0-1.5']}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs w-12">1.5-2.0:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['1.5-2.0'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-green-700 h-1.5 rounded-full" style="width: ${(oddsRanges['1.5-2.0'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['1.5-2.0']}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs w-12">2.0-2.5:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['2.0-2.5'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-green-700 h-1.5 rounded-full" style="width: ${(oddsRanges['2.0-2.5'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['2.0-2.5']}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-xs w-12">2.5+:</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(oddsRanges['2.5+'] / successfulPredictions.length) * 100}%"></div>
+                                    <div class="bg-green-700 h-1.5 rounded-full" style="width: ${(oddsRanges['2.5+'] / successfulPredictions.length) * 100}%"></div>
                                 </div>
                                 <span class="text-xs w-6 text-right">${oddsRanges['2.5+']}</span>
                             </div>
@@ -2186,12 +2198,12 @@
                     </div>
                 </div>
                 
-                <div class="p-2 bg-blue-50 rounded-lg">
-                    <div class="font-bold text-blue-800 mb-1 text-sm">
+                <div class="p-2 bg-green-50 rounded-lg">
+                    <div class="font-bold text-green-800 mb-1 text-sm">
                         <i class="fas fa-history mr-1"></i>
                         Analyse Historique
                     </div>
-                    <p class="text-blue-600 text-xs">
+                    <p class="text-green-700 text-xs">
                         <span class="font-bold">${successfulPredictions.length}</span> prédictions réussies sur 
                         <span class="font-bold">${predictionHistory.length}</span> au total
                     </p>
@@ -2202,9 +2214,9 @@
                         <i class="fas fa-chart-bar mr-1"></i>
                         Meilleur Intervalle de Probabilité
                     </div>
-                    <p class="text-yellow-600 text-xs">
+                    <p class="text-yellow-700 text-xs">
                         ${percentageRanges.bestRange}% (${percentageRanges.bestCount} succès)
-                        <span class="text-xs text-yellow-500">
+                        <span class="text-xs text-yellow-600">
                             Taux de réussite: ${percentageRanges.successRate}%
                         </span>
                     </p>
@@ -2215,9 +2227,9 @@
                         <i class="fas fa-trophy mr-1"></i>
                         Round le Plus Performant
                     </div>
-                    <p class="text-orange-600 text-xs">
+                    <p class="text-orange-700 text-xs">
                         Round ${roundAnalysis.bestRound} 
-                        <span class="text-xs text-orange-500">
+                        <span class="text-xs text-orange-600">
                             (${roundAnalysis.roundCount} succès sur ${roundAnalysis.totalForRound} prédictions)
                         </span>
                     </p>
@@ -2335,13 +2347,13 @@
         if (isHistoryVisible) {
             historyContainer.style.display = 'block';
             toggleButton.textContent = 'Masquer';
-            toggleButton.classList.remove('bg-blue-500');
-            toggleButton.classList.add('bg-blue-600');
+            toggleButton.classList.remove('bg-green-600');
+            toggleButton.classList.add('bg-green-700');
         } else {
             historyContainer.style.display = 'none';
             toggleButton.textContent = 'Afficher';
-            toggleButton.classList.remove('bg-blue-600');
-            toggleButton.classList.add('bg-blue-500');
+            toggleButton.classList.remove('bg-green-700');
+            toggleButton.classList.add('bg-green-600');
         }
     }
     
@@ -2376,7 +2388,7 @@
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444',
-            cancelButtonColor: '#0d2b41',
+            cancelButtonColor: '#0d6b2b',
             confirmButtonText: 'Oui, supprimer tout!',
             cancelButtonText: 'Annuler',
             reverseButtons: true
