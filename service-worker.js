@@ -1,5 +1,5 @@
-[file content begin]
-const CACHE_NAME = 'gamehub-v3.0.0'; // Suppression du cache dynamique
+
+const CACHE_NAME = 'gamehub-v3.0.1'; // Suppression du cache dynamique
 
 const STATIC_ASSETS = [
   './',
